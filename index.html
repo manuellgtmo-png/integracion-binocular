@@ -3,213 +3,166 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terapia Visual - Integración Binocular Pro</title>
+    <title>Cazador Binocular Pro - Movimiento</title>
     <style>
         :root {
-            --bg-vivido: #1e293b;
+            --bg-vivido: #0f172a;
             --rojo-fondo: #80322a; --rojo-figura: #69302a;
             --verde-fondo: #69913d; --verde-figura: #6c7b5a;
             --accent: #38bdf8;
         }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; touch-action: none; }
         
-        /* Pantallas de Interfaz */
-        #login-screen, #admin-panel { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-        .input-clinico, select { padding: 12px; font-size: 1rem; border-radius: 8px; border: 2px solid var(--accent); background: #1e293b; color: white; margin: 10px; width: 250px; }
+        /* Interfaz */
+        .header-instruccion { 
+            background: rgba(15, 23, 42, 0.9); padding: 15px; text-align: center; 
+            border-bottom: 2px solid var(--accent); position: relative; z-index: 10;
+        }
+        #objetivo-texto { font-size: 1.5rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
         
-        /* Barra de herramientas superior */
-        .stats-bar { background: rgba(0,0,0,0.5); padding: 10px; display: flex; justify-content: space-around; align-items: center; font-weight: bold; }
-        
-        /* Área de Juego */
-        #game-canvas { position: relative; width: 100vw; height: calc(100vh - 60px); overflow: hidden; }
+        .stats { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 5px; }
 
+        #game-canvas { position: relative; width: 100vw; height: 100vh; }
+
+        /* Contenedor de la figura (el que tiene el color de fondo para filtrar) */
         .target-box {
             position: absolute; display: flex; align-items: center; justify-content: center;
-            border-radius: 12px; cursor: pointer; transition: transform 0.1s ease-out;
+            border-radius: 10px; cursor: pointer; user-select: none;
         }
-        
-        /* Figuras */
-        .shape-fill { width: 50%; height: 50%; }
-        .circle { border-radius: 50%; }
-        .triangle { width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; }
 
+        /* Figuras Geométricas */
+        .shape { pointer-events: none; }
+        .circle { border-radius: 50%; width: 60%; height: 60%; }
+        .square { width: 60%; height: 60%; }
+        .triangle { 
+            width: 0; height: 0; 
+            border-left: 25px solid transparent; border-right: 25px solid transparent;
+            border-bottom: 50px solid;
+        }
+        .rombo {
+            width: 40px; height: 40px;
+            transform: rotate(45deg);
+        }
+
+        /* Colores según Filtro */
         .box-red { background: var(--rojo-fondo); }
-        .box-red .shape-fill { background: var(--rojo-figura); }
-        .box-red .triangle { border-bottom: 50px solid var(--rojo-figura); }
+        .box-red .shape:not(.triangle) { background: var(--rojo-figura); }
+        .box-red .triangle { border-bottom-color: var(--rojo-figura); }
 
         .box-green { background: var(--verde-fondo); }
-        .box-green .shape-fill { background: var(--verde-figura); }
-        .box-green .triangle { border-bottom: 50px solid var(--verde-figura); }
+        .box-green .shape:not(.triangle) { background: var(--verde-figura); }
+        .box-green .triangle { border-bottom-color: var(--verde-figura); }
 
         /* Animaciones */
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
-        .exploding { animation: explode 0.3s forwards; pointer-events: none; }
-        
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
-        .error-shake { animation: shake 0.2s; background: #ef4444 !important; }
-
-        .btn { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 15px; }
-        .btn-admin { position: absolute; top: 10px; right: 10px; background: none; border: 1px solid white; color: white; cursor: pointer; font-size: 0.7rem; }
+        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
+        .exploding { animation: explode 0.3s forwards; }
     </style>
 </head>
 <body>
 
-    <button class="btn-admin" onclick="abrirAdmin()">Área Profesional</button>
-
-    <div id="login-screen">
-        <h2 style="color:var(--accent)">Integración Binocular Pro</h2>
-        <p style="max-width: 400px; text-align: center; font-size: 0.9rem; color: #cbd5e1;">
-            INSTRUCCIONES: Usa tus gafas rojo-verde. Toca las figuras que aparezcan. Si el modo es "Selectivo", solo toca el color indicado.
-        </p>
-        <input type="text" id="nombrePaciente" class="input-clinico" placeholder="Nombre del Paciente">
-        
-        <label>Modo de Juego:</label>
-        <select id="modoJuego">
-            <option value="aleatorio">Aleatorio (Ambos ojos)</option>
-            <option value="solo-verde">Solo Verde (Ojo Izq/Filtro Verde)</option>
-            <option value="solo-rojo">Solo Rojo (Ojo Der/Filtro Rojo)</option>
-        </select>
-
-        <label>Velocidad:</label>
-        <select id="velocidad">
-            <option value="4000">Lento (4s)</option>
-            <option value="2500" selected>Normal (2.5s)</option>
-            <option value="1500">Rápido (1.5s)</option>
-        </select>
-
-        <button class="btn" onclick="iniciarJuego()">Empezar Terapia</button>
-    </div>
-
-    <div id="admin-panel" style="display:none">
-        <h3>Historial de Sesión</h3>
-        <table id="tablaHistorial" border="1" style="width:100%; border-collapse: collapse; background:#1e293b">
-            <thead><tr><th>Paciente</th><th>Aciertos</th><th>Fallos</th><th>Modo</th></tr></thead>
-            <tbody id="cuerpoTabla"></tbody>
-        </table>
-        <button class="btn" onclick="cerrarAdmin()">Cerrar</button>
-    </div>
-
-    <div class="stats-bar">
-        <span>Paciente: <span id="span-nom">---</span></span>
-        <span>Aciertos: <span id="span-hit">0</span></span>
-        <span>Fallos: <span id="span-miss">0</span></span>
-        <span id="indicador-modo" style="color:var(--accent)"></span>
+    <div class="header-instruccion">
+        <div id="objetivo-texto">Cargando...</div>
+        <div class="stats">
+            <span>Aciertos: <span id="hits">0</span></span>
+            <span>Errores: <span id="misses">0</span></span>
+        </div>
     </div>
 
     <div id="game-canvas"></div>
 
     <script>
-        let paciente = "", aciertos = 0, fallos = 0, timer;
         const canvas = document.getElementById('game-canvas');
+        const tipos = ['círculo', 'cuadrado', 'triángulo', 'rombo'];
+        let objetivoActual = "";
+        let aciertos = 0, errores = 0;
+        let figuras = [];
 
-        function iniciarJuego() {
-            paciente = document.getElementById('nombrePaciente').value.trim();
-            if(!paciente) return alert("Ingrese nombre");
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('span-nom').innerText = paciente;
-            document.getElementById('indicador-modo').innerText = "Modo: " + document.getElementById('modoJuego').value;
-            spawn();
+        function cambiarObjetivo() {
+            objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
+            document.getElementById('objetivo-texto').innerText = `Busca y toca: ${objetivoActual}s`;
         }
 
-        function spawn() {
-            const box = document.createElement('div');
-            const modo = document.getElementById('modoJuego').value;
-            const vel = parseInt(document.getElementById('velocidad').value);
-            
-            // Lógica de color según modo
-            let esRojo = Math.random() > 0.5;
-            if(modo === "solo-rojo") esRojo = true;
-            if(modo === "solo-verde") esRojo = false;
+        class Figura {
+            constructor() {
+                this.el = document.createElement('div');
+                this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
+                this.esRojo = Math.random() > 0.5;
+                this.size = Math.random() > 0.7 ? 70 : 110; // Mezcla de grandes y pequeñas
+                
+                this.x = Math.random() * (window.innerWidth - this.size);
+                this.y = Math.random() * (window.innerHeight - this.size - 100) + 80;
+                this.vx = (Math.random() - 0.5) * 4; // Velocidad X
+                this.vy = (Math.random() - 0.5) * 4; // Velocidad Y
 
-            // Lógica de tamaño (2 grandes, 1 pequeña)
-            const sizes = [120, 120, 70];
-            const size = sizes[Math.floor(Math.random() * sizes.length)];
+                this.init();
+            }
 
-            box.className = `target-box ${esRojo ? 'box-red' : 'box-green'}`;
-            box.style.width = size + "px";
-            box.style.height = size + "px";
-            box.style.left = Math.random() * (window.innerWidth - size) + "px";
-            box.style.top = Math.random() * (window.innerHeight - size - 60) + "px";
+            init() {
+                this.el.className = `target-box ${this.esRojo ? 'box-red' : 'box-green'}`;
+                this.el.style.width = this.size + 'px';
+                this.el.style.height = this.size + 'px';
+                
+                const shape = document.createElement('div');
+                if(this.tipo === 'círculo') shape.className = "shape circle";
+                else if(this.tipo === 'cuadrado') shape.className = "shape square";
+                else if(this.tipo === 'triángulo') shape.className = "shape triangle";
+                else if(this.tipo === 'rombo') shape.className = "shape rombo";
+                
+                this.el.appendChild(shape);
+                this.el.onpointerdown = () => this.verificar();
+                canvas.appendChild(this.el);
+            }
 
-            // Figura interna
-            const shapeType = Math.floor(Math.random() * 3);
-            const shape = document.createElement('div');
-            if(shapeType === 0) shape.className = "shape-fill circle";
-            else if(shapeType === 1) shape.className = "shape-fill";
-            else shape.className = "triangle";
-            box.appendChild(shape);
+            actualizar() {
+                this.x += this.vx;
+                this.y += this.vy;
 
-            box.onclick = (e) => {
-                e.stopPropagation();
-                // Validar si es el color correcto en modo selectivo
-                if((modo === "solo-rojo" && !esRojo) || (modo === "solo-verde" && esRojo)) {
-                    registrarError(box);
+                // Rebotar en bordes
+                if (this.x <= 0 || this.x >= window.innerWidth - this.size) this.vx *= -1;
+                if (this.y <= 80 || this.y >= window.innerHeight - this.size) this.vy *= -1;
+
+                this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
+            }
+
+            verificar() {
+                if (this.tipo === objetivoActual) {
+                    aciertos++;
+                    this.el.classList.add('exploding');
+                    setTimeout(() => this.reaparecer(), 300);
                 } else {
-                    registrarAcierto(box);
+                    errores++;
+                    this.el.style.boxShadow = "0 0 20px red";
+                    setTimeout(() => this.el.style.boxShadow = "none", 300);
                 }
-            };
+                document.getElementById('hits').innerText = aciertos;
+                document.getElementById('misses').innerText = errores;
+                
+                if(aciertos % 5 === 0) cambiarObjetivo();
+            }
 
-            canvas.appendChild(box);
-            
-            // Auto-eliminar si no se toca
-            timer = setTimeout(() => {
-                if(box.parentNode) {
-                    canvas.removeChild(box);
-                    fallos++;
-                    actualizarStats();
-                    spawn();
-                }
-            }, vel);
-        }
-
-        function registrarAcierto(el) {
-            clearTimeout(timer);
-            aciertos++;
-            actualizarStats();
-            el.classList.add('exploding');
-            setTimeout(() => {
-                if(el.parentNode) canvas.removeChild(el);
-                spawn();
-            }, 300);
-        }
-
-        function registrarError(el) {
-            fallos++;
-            actualizarStats();
-            el.classList.add('error-shake');
-            setTimeout(() => el.classList.remove('error-shake'), 200);
-        }
-
-        function actualizarStats() {
-            document.getElementById('span-hit').innerText = aciertos;
-            document.getElementById('span-miss').innerText = fallos;
-        }
-
-        function abrirAdmin() {
-            if(prompt("Clave:") === "1234") {
-                document.getElementById('admin-panel').style.display = 'flex';
-                let h = JSON.parse(localStorage.getItem('h_binocular') || "[]");
-                document.getElementById('cuerpoTabla').innerHTML = h.map(d => `<tr><td>${d.n}</td><td>${d.a}</td><td>${d.f}</td><td>${d.m}</td></tr>`).join('');
+            reaparecer() {
+                this.x = Math.random() * (window.innerWidth - this.size);
+                this.y = Math.random() * (window.innerHeight - this.size - 100) + 80;
+                this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
+                this.el.innerHTML = "";
+                this.init();
+                this.el.classList.remove('exploding');
             }
         }
 
-        function cerrarAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-        
-        // Guardar localmente al salir/terminar (opcional por ahora)
-        window.onbeforeunload = () => {
-            if(paciente) {
-                let h = JSON.parse(localStorage.getItem('h_binocular') || "[]");
-                h.push({n: paciente, a: aciertos, f: fallos, m: document.getElementById('modoJuego').value});
-                localStorage.setItem('h_binocular', JSON.stringify(h));
-            }
-        };
+        // Crear 15 figuras iniciales
+        for(let i=0; i<15; i++) {
+            figuras.push(new Figura());
+        }
+
+        cambiarObjetivo();
+
+        function animar() {
+            figuras.forEach(f => f.actualizar());
+            requestAnimationFrame(animar);
+        }
+        animar();
     </script>
 </body>
 </html>
+
