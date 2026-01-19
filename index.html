@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v10</title>
+    <title>Integración Binocular Clínica v11 - Sincronizado</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,8 +13,8 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
-        /* Barra Profesional Independiente */
-        #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: relative; }
+        /* Barra Profesional */
+        #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: fixed; top: 0; width: 100%; box-sizing: border-box; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
@@ -25,7 +25,7 @@
         
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
+        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); margin-top: 0; }
         .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
         
         #game-container { display: flex; height: calc(100vh - 110px); }
@@ -47,12 +47,12 @@
 
 <div id="admin-bar">
     <span>MODO PROFESIONAL ACTIVO</span>
-    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">🔍 BUSCAR PACIENTE EN EXCEL</button>
+    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 ABRIR EXCEL DE REPORTES</button>
 </div>
 
 <div id="screen-start" class="overlay">
     <div class="card">
-        <button style="position:absolute; top:20px; right:20px; background:none; border:none; cursor:pointer; opacity:0.3;" onclick="unlockAdmin()">⚙️</button>
+        <button style="position:absolute; top:20px; right:20px; background:none; border:none; cursor:pointer; opacity:0.3;" onclick="activarAdmin()">⚙️</button>
         <h1 style="color:var(--accent-pink); margin:0;">BIENVENIDO</h1>
         <input type="text" id="paciente" placeholder="Nombre del Paciente">
         <input type="text" id="profesional" placeholder="Profesional a cargo">
@@ -64,10 +64,10 @@
     <div class="card">
         <h2 style="color:var(--accent-pink);">¿Cómo jugar?</h2>
         <div style="text-align:left; color:#2d3436; font-size: 0.9rem; line-height: 1.5;">
-            <p>🕶️ <b>Paso 1:</b> Colócate tus gafas <b>Rojo/Verde</b>.</p>
-            <p>🔍 <b>Paso 2:</b> Mira la letra que aparece en el centro arriba.</p>
-            <p>👆 <b>Paso 3:</b> Toca <u>solo</u> esa letra en el lado rojo o verde.</p>
-            <p>⚠️ <b>Paso 4:</b> Tienes 2 vidas. ¡No toques el fondo!</p>
+            <p>🕶️ <b>Paso 1:</b> Ponte tus gafas <b>Rojo/Verde</b>.</p>
+            <p>🔍 <b>Paso 2:</b> Mira la letra del centro arriba.</p>
+            <p>👆 <b>Paso 3:</b> Toca esa misma letra en la pantalla.</p>
+            <p>⚠️ <b>Paso 4:</b> ¡No toques el fondo!</p>
         </div>
         <button class="btn" onclick="showSkills()">ENTENDIDO</button>
     </div>
@@ -77,9 +77,9 @@
     <div class="card" style="background:#16213e; color:white;">
         <h2 style="color:var(--accent-blue);">✨ Habilidades a trabajar:</h2>
         <div style="text-align:left; margin: 20px 0; font-size: 0.9rem; line-height: 1.6;">
-            <p>👁️ <b>Antisupresión:</b> Estimula el ojo vago.</p>
-            <p>🎯 <b>Fusión Plana:</b> Integra ambas imágenes.</p>
-            <p>🚀 <b>Coordinación:</b> Ojo-mano en tiempo real.</p>
+            <p>👁️ <b>Antisupresión:</b> Activa el ojo vago.</p>
+            <p>🎯 <b>Fusión Plana:</b> Une las imágenes.</p>
+            <p>🚀 <b>Coordinación:</b> Ojo-mano precisa.</p>
         </div>
         <button class="btn" onclick="startGame()">¡EMPEZAR!</button>
     </div>
@@ -87,18 +87,17 @@
 
 <div id="screen-next" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:#009955; margin:0;">¡BIEN HECHO!</h1>
-        <p>Has superado el nivel con éxito.</p>
+        <h1 style="color:#009955; margin:0;">¡NIVEL SUPERADO!</h1>
         <button class="btn btn-next" onclick="iniciarNivel()">SIGUIENTE NIVEL ➔</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN FINALIZADA</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando datos...</div>
+        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando con Excel...</div>
         <p id="resumen-final" style="font-size:0.9rem; color:#636e72;"></p>
-        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="finalForceReload()">SALIR AL INICIO</button>
+        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="finalForceReload()">VOLVER AL INICIO</button>
     </div>
 </div>
 
@@ -122,12 +121,12 @@
     let elementos = [];
     const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
 
-    function unlockAdmin() {
+    function activarAdmin() {
         if(prompt("Clave Profesional:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
     }
 
     function showIntro() {
-        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Ingresa los nombres.");
+        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Completa los datos.");
         document.getElementById('screen-start').style.display = 'none';
         document.getElementById('screen-intro').style.display = 'flex';
     }
@@ -205,7 +204,7 @@
         document.getElementById('txt-vidas').innerText = vidas;
         if(vidas <= 0) { 
             jugando = false;
-            document.getElementById('resumen-final').innerText = `Resultados finales guardados para ${document.getElementById('paciente').value}.`;
+            document.getElementById('resumen-final').innerText = `Reporte enviado para ${document.getElementById('paciente').value}.`;
             document.getElementById('screen-end').style.display = 'flex';
             enviarAutomatico();
         }
@@ -214,7 +213,7 @@
     function passLevel() { jugando = false; nivel++; document.getElementById('screen-next').style.display = 'flex'; }
 
     function enviarAutomatico() {
-        // IMPORTANTE: Verifica que estos IDs correspondan a las columnas de tu Excel
+        // LINK DEL FORMULARIO PUBLICADO
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const fd = new FormData();
         fd.append("entry.369874016", document.getElementById('paciente').value);
@@ -227,16 +226,16 @@
 
         fetch(url, { method: "POST", mode: "no-cors", body: fd })
         .then(() => {
-            document.getElementById('status-envio').innerHTML = "✅ DATOS ENVIADOS AL EXCEL";
+            document.getElementById('status-envio').innerHTML = "✅ DATOS SINCRONIZADOS";
         })
         .catch(() => {
-            document.getElementById('status-envio').innerHTML = "⚠️ Reintentando conexión...";
+            document.getElementById('status-envio').innerHTML = "⚠️ Error de red. Intenta de nuevo.";
         });
     }
 
     function finalForceReload() {
-        enviarAutomatico(); // Último intento de respaldo
-        setTimeout(() => { location.reload(); }, 800);
+        enviarAutomatico(); 
+        setTimeout(() => { location.reload(); }, 600);
     }
 </script>
 </body>
