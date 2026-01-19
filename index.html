@@ -3,117 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terapia Visual - Integración Binocular</title>
+    <title>Terapia Visual - Integración Binocular Pro</title>
     <style>
         :root {
-            --bg-neutral: #f3f4f6;
-            /* Colores que me pasaste para Rojo */
-            --rojo-fondo: #80322a;
-            --rojo-figura: #69302a;
-            /* Colores que me pasaste para Verde */
-            --verde-fondo: #69913d;
-            --verde-figura: #6c7b5a;
+            --bg-vivido: #1e293b;
+            --rojo-fondo: #80322a; --rojo-figura: #69302a;
+            --verde-fondo: #69913d; --verde-figura: #6c7b5a;
+            --accent: #38bdf8;
         }
-        body { margin: 0; font-family: sans-serif; background: var(--bg-neutral); overflow: hidden; text-align: center; }
-        .stats { background: #1e293b; color: white; padding: 10px; display: flex; justify-content: space-around; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; }
         
-        #game-canvas { position: relative; width: 100vw; height: 85vh; cursor: crosshair; }
+        /* Pantallas de Interfaz */
+        #login-screen, #admin-panel { position: fixed; inset: 0; background: #0f172a; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        .input-clinico, select { padding: 12px; font-size: 1rem; border-radius: 8px; border: 2px solid var(--accent); background: #1e293b; color: white; margin: 10px; width: 250px; }
+        
+        /* Barra de herramientas superior */
+        .stats-bar { background: rgba(0,0,0,0.5); padding: 10px; display: flex; justify-content: space-around; align-items: center; font-weight: bold; }
+        
+        /* Área de Juego */
+        #game-canvas { position: relative; width: 100vw; height: calc(100vh - 60px); overflow: hidden; }
 
         .target-box {
-            position: absolute;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            transition: transform 0.1s;
+            position: absolute; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; cursor: pointer; transition: transform 0.1s ease-out;
         }
-
-        /* Estilos de figuras geométricas */
-        .shape { width: 60px; height: 60px; }
+        
+        /* Figuras */
+        .shape-fill { width: 50%; height: 50%; }
         .circle { border-radius: 50%; }
-        .square { width: 60px; height: 60px; }
-        .triangle { 
-            width: 0; height: 0; 
-            border-left: 30px solid transparent;
-            border-right: 30px solid transparent;
+        .triangle { width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; }
+
+        .box-red { background: var(--rojo-fondo); }
+        .box-red .shape-fill { background: var(--rojo-figura); }
+        .box-red .triangle { border-bottom: 50px solid var(--rojo-figura); }
+
+        .box-green { background: var(--verde-fondo); }
+        .box-green .shape-fill { background: var(--verde-figura); }
+        .box-green .triangle { border-bottom: 50px solid var(--verde-figura); }
+
+        /* Animaciones */
+        @keyframes explode {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
         }
+        .exploding { animation: explode 0.3s forwards; pointer-events: none; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .error-shake { animation: shake 0.2s; background: #ef4444 !important; }
 
-        /* Aplicación de tus colores específicos */
-        .box-red { background-color: var(--rojo-fondo); }
-        .box-red .shape-fill { background-color: var(--rojo-figura); }
-        .box-red .triangle { border-bottom: 60px solid var(--rojo-figura); }
-
-        .box-green { background-color: var(--verde-fondo); }
-        .box-green .shape-fill { background-color: var(--verde-figura); }
-        .box-green .triangle { border-bottom: 60px solid var(--verde-figura); }
-
+        .btn { background: var(--accent); color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        .btn-admin { position: absolute; top: 10px; right: 10px; background: none; border: 1px solid white; color: white; cursor: pointer; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
-    <div class="stats">
-        <div>Paciente: <span id="nombre-display">---</span></div>
-        <div>Aciertos: <span id="hits">0</span></div>
-        <div>Fallos: <span id="misses">0</span></div>
+    <button class="btn-admin" onclick="abrirAdmin()">Área Profesional</button>
+
+    <div id="login-screen">
+        <h2 style="color:var(--accent)">Integración Binocular Pro</h2>
+        <p style="max-width: 400px; text-align: center; font-size: 0.9rem; color: #cbd5e1;">
+            INSTRUCCIONES: Usa tus gafas rojo-verde. Toca las figuras que aparezcan. Si el modo es "Selectivo", solo toca el color indicado.
+        </p>
+        <input type="text" id="nombrePaciente" class="input-clinico" placeholder="Nombre del Paciente">
+        
+        <label>Modo de Juego:</label>
+        <select id="modoJuego">
+            <option value="aleatorio">Aleatorio (Ambos ojos)</option>
+            <option value="solo-verde">Solo Verde (Ojo Izq/Filtro Verde)</option>
+            <option value="solo-rojo">Solo Rojo (Ojo Der/Filtro Rojo)</option>
+        </select>
+
+        <label>Velocidad:</label>
+        <select id="velocidad">
+            <option value="4000">Lento (4s)</option>
+            <option value="2500" selected>Normal (2.5s)</option>
+            <option value="1500">Rápido (1.5s)</option>
+        </select>
+
+        <button class="btn" onclick="iniciarJuego()">Empezar Terapia</button>
     </div>
 
-    <div id="game-canvas" onclick="checkMiss(event)">
-        </div>
+    <div id="admin-panel" style="display:none">
+        <h3>Historial de Sesión</h3>
+        <table id="tablaHistorial" border="1" style="width:100%; border-collapse: collapse; background:#1e293b">
+            <thead><tr><th>Paciente</th><th>Aciertos</th><th>Fallos</th><th>Modo</th></tr></thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+        <button class="btn" onclick="cerrarAdmin()">Cerrar</button>
+    </div>
+
+    <div class="stats-bar">
+        <span>Paciente: <span id="span-nom">---</span></span>
+        <span>Aciertos: <span id="span-hit">0</span></span>
+        <span>Fallos: <span id="span-miss">0</span></span>
+        <span id="indicador-modo" style="color:var(--accent)"></span>
+    </div>
+
+    <div id="game-canvas"></div>
 
     <script>
-        let aciertos = 0, fallos = 0;
-        let nombre = prompt("Nombre del paciente:") || "Anonimo";
-        document.getElementById('nombre-display').innerText = nombre;
+        let paciente = "", aciertos = 0, fallos = 0, timer;
+        const canvas = document.getElementById('game-canvas');
 
-        function crearFigura() {
-            const canvas = document.getElementById('game-canvas');
+        function iniciarJuego() {
+            paciente = document.getElementById('nombrePaciente').value.trim();
+            if(!paciente) return alert("Ingrese nombre");
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('span-nom').innerText = paciente;
+            document.getElementById('indicador-modo').innerText = "Modo: " + document.getElementById('modoJuego').value;
+            spawn();
+        }
+
+        function spawn() {
             const box = document.createElement('div');
-            const isRed = Math.random() > 0.5;
-            const shapeType = Math.floor(Math.random() * 3); // 0: Circulo, 1: Cuadrado, 2: Triangulo
-
-            box.className = `target-box ${isRed ? 'box-red' : 'box-green'}`;
+            const modo = document.getElementById('modoJuego').value;
+            const vel = parseInt(document.getElementById('velocidad').value);
             
-            // Posición aleatoria
-            box.style.left = Math.random() * (window.innerWidth - 150) + "px";
-            box.style.top = Math.random() * (window.innerHeight - 250) + "px";
+            // Lógica de color según modo
+            let esRojo = Math.random() > 0.5;
+            if(modo === "solo-rojo") esRojo = true;
+            if(modo === "solo-verde") esRojo = false;
 
+            // Lógica de tamaño (2 grandes, 1 pequeña)
+            const sizes = [120, 120, 70];
+            const size = sizes[Math.floor(Math.random() * sizes.length)];
+
+            box.className = `target-box ${esRojo ? 'box-red' : 'box-green'}`;
+            box.style.width = size + "px";
+            box.style.height = size + "px";
+            box.style.left = Math.random() * (window.innerWidth - size) + "px";
+            box.style.top = Math.random() * (window.innerHeight - size - 60) + "px";
+
+            // Figura interna
+            const shapeType = Math.floor(Math.random() * 3);
             const shape = document.createElement('div');
-            if(shapeType === 0) shape.className = "shape circle shape-fill";
-            else if(shapeType === 1) shape.className = "shape square shape-fill";
-            else shape.className = "shape triangle";
-
+            if(shapeType === 0) shape.className = "shape-fill circle";
+            else if(shapeType === 1) shape.className = "shape-fill";
+            else shape.className = "triangle";
             box.appendChild(shape);
+
             box.onclick = (e) => {
                 e.stopPropagation();
-                aciertos++;
-                document.getElementById('hits').innerText = aciertos;
-                canvas.removeChild(box);
-                crearFigura();
+                // Validar si es el color correcto en modo selectivo
+                if((modo === "solo-rojo" && !esRojo) || (modo === "solo-verde" && esRojo)) {
+                    registrarError(box);
+                } else {
+                    registrarAcierto(box);
+                }
             };
 
             canvas.appendChild(box);
-
-            // Desaparece después de 3 segundos si no se toca
-            setTimeout(() => {
+            
+            // Auto-eliminar si no se toca
+            timer = setTimeout(() => {
                 if(box.parentNode) {
                     canvas.removeChild(box);
                     fallos++;
-                    document.getElementById('misses').innerText = fallos;
-                    crearFigura();
+                    actualizarStats();
+                    spawn();
                 }
-            }, 3000);
+            }, vel);
         }
 
-        function checkMiss(e) {
-            // Si toca el fondo blanco cuenta como error de precisión
+        function registrarAcierto(el) {
+            clearTimeout(timer);
+            aciertos++;
+            actualizarStats();
+            el.classList.add('exploding');
+            setTimeout(() => {
+                if(el.parentNode) canvas.removeChild(el);
+                spawn();
+            }, 300);
         }
 
-        // Iniciar con 3 figuras en pantalla
-        crearFigura();
-        crearFigura();
-        crearFigura();
+        function registrarError(el) {
+            fallos++;
+            actualizarStats();
+            el.classList.add('error-shake');
+            setTimeout(() => el.classList.remove('error-shake'), 200);
+        }
+
+        function actualizarStats() {
+            document.getElementById('span-hit').innerText = aciertos;
+            document.getElementById('span-miss').innerText = fallos;
+        }
+
+        function abrirAdmin() {
+            if(prompt("Clave:") === "1234") {
+                document.getElementById('admin-panel').style.display = 'flex';
+                let h = JSON.parse(localStorage.getItem('h_binocular') || "[]");
+                document.getElementById('cuerpoTabla').innerHTML = h.map(d => `<tr><td>${d.n}</td><td>${d.a}</td><td>${d.f}</td><td>${d.m}</td></tr>`).join('');
+            }
+        }
+
+        function cerrarAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+        
+        // Guardar localmente al salir/terminar (opcional por ahora)
+        window.onbeforeunload = () => {
+            if(paciente) {
+                let h = JSON.parse(localStorage.getItem('h_binocular') || "[]");
+                h.push({n: paciente, a: aciertos, f: fallos, m: document.getElementById('modoJuego').value});
+                localStorage.setItem('h_binocular', JSON.stringify(h));
+            }
+        };
     </script>
 </body>
 </html>
