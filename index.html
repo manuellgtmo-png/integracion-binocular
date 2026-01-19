@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cazador Binocular Pro - Área Profesional</title>
+    <title>Cazador Binocular Pro - Máxima Velocidad</title>
     <style>
         :root {
             --bg-vivido: #0f172a;
@@ -13,30 +13,30 @@
         }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; touch-action: none; }
         
-        /* Interfaz de Inicio y Admin */
-        #login-screen, #admin-panel { position: fixed; inset: 0; background: #0f172a; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
+        /* Interfaz de Pantallas */
+        #login-screen, #admin-panel, #msg-screen { position: fixed; inset: 0; background: #0f172a; z-index: 3000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
         .input-clinico { padding: 12px; font-size: 1rem; border-radius: 8px; border: 2px solid var(--accent); background: #1e293b; color: white; margin: 10px; width: 280px; }
         
         .header-instruccion { 
-            background: rgba(15, 23, 42, 0.9); padding: 10px; text-align: center; 
+            background: rgba(15, 23, 42, 0.95); padding: 10px; text-align: center; 
             border-bottom: 2px solid var(--accent); position: relative; z-index: 10;
         }
-        #objetivo-texto { font-size: 1.6rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
+        #objetivo-texto { font-size: 1.8rem; font-weight: bold; color: var(--accent); text-transform: uppercase; text-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
         
         .stats { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 5px; color: #cbd5e1; }
 
         #game-canvas { position: relative; width: 100vw; height: 100vh; }
 
-        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; }
+        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; transition: box-shadow 0.2s; }
 
-        /* Figuras */
+        /* Figuras Geométricas */
         .shape { pointer-events: none; }
         .circle { border-radius: 50%; width: 60%; height: 60%; }
         .square { width: 60%; height: 60%; }
         .triangle { width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-bottom: 50px solid; }
         .rombo { width: 40px; height: 40px; transform: rotate(45deg); }
 
-        /* Colores */
+        /* Colores Filtros */
         .box-red { background: var(--rojo-fondo); }
         .box-red .shape:not(.triangle) { background: var(--rojo-figura); }
         .box-red .triangle { border-bottom-color: var(--rojo-figura); }
@@ -44,18 +44,17 @@
         .box-green .shape:not(.triangle) { background: var(--verde-figura); }
         .box-green .triangle { border-bottom-color: var(--verde-figura); }
 
-        /* Transiciones */
-        #msg-screen {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 2000; text-align: center;
+        /* Animación Explosión */
+        @keyframes explode { 
+            0% { transform: scale(1); opacity: 1; filter: brightness(1); } 
+            100% { transform: scale(2.2); opacity: 0; filter: brightness(2) blur(4px); } 
         }
-        .btn-grande { background: var(--accent); color: #0f172a; padding: 15px 35px; border-radius: 12px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border: none; margin-top: 20px; }
-        
-        .btn-admin { position: absolute; top: 10px; right: 10px; background: none; border: 1px solid white; color: white; cursor: pointer; font-size: 0.7rem; z-index: 4000; }
+        .exploding { animation: explode 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: none; }
 
-        @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
-        .exploding { animation: explode 0.3s forwards; }
+        /* Botones */
+        .btn-grande { background: var(--accent); color: #0f172a; padding: 15px 35px; border-radius: 12px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border: none; margin-top: 20px; transition: 0.2s; }
+        .btn-grande:active { transform: scale(0.95); }
+        .btn-admin { position: absolute; top: 10px; right: 10px; background: none; border: 1px solid white; color: white; cursor: pointer; font-size: 0.7rem; z-index: 4000; opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -63,27 +62,27 @@
     <button class="btn-admin" onclick="abrirAdmin()">Área Profesional</button>
 
     <div id="login-screen">
-        <h2 style="color:var(--accent)">Configuración de Sesión</h2>
-        <p>Integración Binocular - Figuras en Movimiento</p>
+        <h1 style="color:var(--accent); margin-bottom:0;">BINOCULAR PRO</h1>
+        <p style="margin-bottom:20px;">Entrenamiento de Integración y Rastreo</p>
         <input type="text" id="nombrePaciente" class="input-clinico" placeholder="Nombre del Paciente">
-        <button class="btn-grande" onclick="iniciarTerapia()">Empezar</button>
+        <button class="btn-grande" onclick="iniciarTerapia()">Iniciar Sesión</button>
     </div>
 
-    <div id="msg-screen">
-        <h1 id="msg-titulo" style="color:white"></h1>
-        <p id="msg-subtitulo"></p>
+    <div id="msg-screen" style="display:none">
+        <h1 id="msg-titulo" style="font-size: 3rem;"></h1>
+        <p id="msg-subtitulo" style="font-size: 1.2rem;"></p>
         <button id="btn-msg" class="btn-grande" onclick="prepararNivel()"></button>
     </div>
 
     <div id="admin-panel" style="display:none">
-        <h3>Historial de Resultados</h3>
-        <div style="overflow-y: auto; max-height: 300px; width: 90%;">
-            <table id="tablaHistorial" border="1" style="width:100%; border-collapse: collapse; background:#1e293b; font-size: 0.8rem;">
-                <thead><tr><th>Fecha</th><th>Paciente</th><th>Nivel</th><th>Aciertos</th><th>Fallos</th><th>Tiempo</th></tr></thead>
+        <h3>Historial Clínico (Clave: 1234)</h3>
+        <div style="overflow-y: auto; max-height: 300px; width: 95%;">
+            <table border="1" style="width:100%; border-collapse: collapse; background:#1e293b; font-size: 0.75rem;">
+                <thead><tr><th>Fecha</th><th>Paciente</th><th>Niv</th><th>Aciertos</th><th>Fallos</th><th>Tiempo</th></tr></thead>
                 <tbody id="cuerpoTabla"></tbody>
             </table>
         </div>
-        <button class="btn-grande" style="font-size:1rem" onclick="cerrarAdmin()">Cerrar</button>
+        <button class="btn-grande" style="font-size:1rem" onclick="cerrarAdmin()">Cerrar Panel</button>
     </div>
 
     <div class="header-instruccion">
@@ -91,8 +90,8 @@
         <div class="stats">
             <span>Paciente: <b id="val-pac" style="color:white">---</b></span>
             <span>Nivel: <b id="val-nivel" style="color:white">1</b></span>
-            <span>Quedan: <b id="val-quedan" style="color:var(--accent)">0</b></span>
-            <span>Fallos: <b id="val-err-nivel" style="color:#ef4444">0/3</b></span>
+            <span>Objetivos: <b id="val-quedan" style="color:var(--accent)">0</b></span>
+            <span>Errores: <b id="val-err-nivel" style="color:#ef4444">0/3</b></span>
             <span>Tiempo: <b id="val-tiempo" style="color:white">00:00</b></span>
         </div>
     </div>
@@ -105,11 +104,11 @@
         let objetivoActual = "";
         let figuras = [], nivel = 1, segundos = 0, paciente = "";
         let figurasObjetivoRestantes = 0, erroresNivel = 0, aciertosTotales = 0, erroresTotales = 0;
-        let velocidadBase = 2, cronometro;
+        let velocidadBase = 2.5, cronometro;
 
         function iniciarTerapia() {
             paciente = document.getElementById('nombrePaciente').value.trim();
-            if(!paciente) return alert("Ingrese el nombre del paciente");
+            if(!paciente) return alert("Por favor, ingrese el nombre.");
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('val-pac').innerText = paciente;
             iniciarCronometro();
@@ -132,14 +131,15 @@
             erroresNivel = 0;
             actualizarInterfaz();
             
+            // Cantidad aleatoria de figuras para rastreo
             const cantidadTotal = Math.floor(Math.random() * (25 - 12 + 1)) + 12;
             objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
-            
-            document.getElementById('objetivo-texto').innerText = `Atrapa todos los: ${objetivoActual}s`;
+            document.getElementById('objetivo-texto').innerText = `Atrapa: ${objetivoActual}s`;
 
             for(let i=0; i < cantidadTotal; i++) figuras.push(new Figura());
+            
             figurasObjetivoRestantes = figuras.filter(f => f.tipo === objetivoActual).length;
-            if(figurasObjetivoRestantes === 0) return prepararNivel();
+            if(figurasObjetivoRestantes === 0) return prepararNivel(); // Asegurar que haya objetivos
 
             document.getElementById('val-quedan').innerText = figurasObjetivoRestantes;
         }
@@ -152,25 +152,35 @@
         class Figura {
             constructor() {
                 this.el = document.createElement('div');
+                this.crearPropiedades();
+                this.init();
+            }
+
+            crearPropiedades() {
                 this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
                 this.esRojo = Math.random() > 0.5;
-                this.size = Math.random() > 0.8 ? 70 : 110;
+                this.size = Math.random() > 0.8 ? 70 : 115;
                 this.x = Math.random() * (window.innerWidth - this.size);
-                this.y = Math.random() * (window.innerHeight - this.size - 130) + 110;
-                this.vx = (Math.random() - 0.5) * velocidadBase;
-                this.vy = (Math.random() - 0.5) * velocidadBase;
-                this.init();
+                this.y = Math.random() * (window.innerHeight - this.size - 140) + 120;
+                
+                // Velocidad individual con variación aleatoria
+                const varI = 0.7 + Math.random();
+                this.vx = (Math.random() - 0.5) * velocidadBase * varI;
+                this.vy = (Math.random() - 0.5) * velocidadBase * varI;
             }
 
             init() {
                 this.el.className = `target-box ${this.esRojo ? 'box-red' : 'box-green'}`;
                 this.el.style.width = this.size + 'px';
                 this.el.style.height = this.size + 'px';
+                this.el.innerHTML = "";
+                
                 const shape = document.createElement('div');
                 if(this.tipo === 'círculo') shape.className = "shape circle";
                 else if(this.tipo === 'cuadrado') shape.className = "shape square";
                 else if(this.tipo === 'triángulo') shape.className = "shape triangle";
                 else if(this.tipo === 'rombo') shape.className = "shape rombo";
+                
                 this.el.appendChild(shape);
                 this.el.onpointerdown = (e) => { e.preventDefault(); this.verificar(); };
                 canvas.appendChild(this.el);
@@ -179,7 +189,7 @@
             actualizar() {
                 this.x += this.vx; this.y += this.vy;
                 if (this.x <= 0 || this.x >= window.innerWidth - this.size) this.vx *= -1;
-                if (this.y <= 110 || this.y >= window.innerHeight - this.size) this.vy *= -1;
+                if (this.y <= 120 || this.y >= window.innerHeight - this.size) this.vy *= -1;
                 this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
             }
 
@@ -188,7 +198,13 @@
                     aciertosTotales++;
                     figurasObjetivoRestantes--;
                     document.getElementById('val-quedan').innerText = figurasObjetivoRestantes;
+                    
+                    // EFECTO EXPLOSIÓN
                     this.el.classList.add('exploding');
+                    
+                    // ACELERACIÓN DINÁMICA: Las demás figuras aceleran un 10%
+                    figuras.forEach(f => { f.vx *= 1.1; f.vy *= 1.1; });
+
                     setTimeout(() => {
                         if(this.el.parentNode) canvas.removeChild(this.el);
                         figuras = figuras.filter(f => f !== this);
@@ -198,7 +214,7 @@
                     erroresNivel++;
                     erroresTotales++;
                     actualizarInterfaz();
-                    this.el.style.boxShadow = "0 0 20px #ef4444";
+                    this.el.style.boxShadow = "0 0 30px #ef4444";
                     setTimeout(() => this.el.style.boxShadow = "none", 300);
                     if(erroresNivel >= 3) fallarNivel();
                 }
@@ -207,13 +223,13 @@
 
         function completarNivel() {
             nivel++;
-            velocidadBase += 0.4;
-            mostrarMensaje("¡Nivel Completado!", "Muy bien hecho. Vamos a aumentar la velocidad.", "Siguiente Nivel");
+            velocidadBase += 0.8; // Aumento de velocidad agresivo
+            mostrarMensaje("¡Nivel Superado!", "Velocidad aumentada. ¡Sigue así!", "Siguiente Nivel");
             guardarProgreso();
         }
 
         function fallarNivel() {
-            mostrarMensaje("Nivel Fallido", "Has cometido 3 errores. Inténtalo de nuevo.", "Repetir Nivel");
+            mostrarMensaje("Nivel Fallido", "3 errores cometidos. Debes repetir la tanda.", "Reintentar Nivel");
         }
 
         function mostrarMensaje(tit, sub, btn) {
@@ -224,9 +240,9 @@
         }
 
         function abrirAdmin() {
-            if(prompt("Clave de acceso:") === "1234") {
+            if(prompt("Clave de Especialista:") === "1234") {
                 document.getElementById('admin-panel').style.display = 'flex';
-                let h = JSON.parse(localStorage.getItem('historial_binocular') || "[]");
+                let h = JSON.parse(localStorage.getItem('historial_binocular_pro') || "[]");
                 document.getElementById('cuerpoTabla').innerHTML = h.reverse().map(d => 
                     `<tr><td>${d.fecha}</td><td>${d.pac}</td><td>${d.niv}</td><td>${d.ac}</td><td>${d.err}</td><td>${d.tie}</td></tr>`
                 ).join('');
@@ -236,16 +252,12 @@
         function cerrarAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
 
         function guardarProgreso() {
-            let h = JSON.parse(localStorage.getItem('historial_binocular') || "[]");
+            let h = JSON.parse(localStorage.getItem('historial_binocular_pro') || "[]");
             h.push({
-                fecha: new Date().toLocaleDateString(),
-                pac: paciente,
-                niv: nivel,
-                ac: aciertosTotales,
-                err: erroresTotales,
-                tie: document.getElementById('val-tiempo').innerText
+                fecha: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                pac: paciente, niv: nivel - 1, ac: aciertosTotales, err: erroresTotales, tie: document.getElementById('val-tiempo').innerText
             });
-            localStorage.setItem('historial_binocular', JSON.stringify(h));
+            localStorage.setItem('historial_binocular_pro', JSON.stringify(h));
         }
 
         function animar() {
@@ -256,3 +268,4 @@
     </script>
 </body>
 </html>
+
