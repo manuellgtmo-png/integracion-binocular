@@ -3,107 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Pro</title>
+    <title>Integración Binocular Clínica</title>
     <style>
         :root { 
-            --bg: #0f172a; 
-            --accent: #f472b6; 
-            --card: #1e293b; 
-            --error: #f43f5e; 
-            --success: #10b981; 
+            --bg-dark: #0f172a; 
+            --accent-pink: #e91e63;
+            /* Colores Exactos para Filtros */
+            --rojo-fondo: #80322a;
+            --rojo-figura: #69302a;
+            --verde-fondo: #69913d;
+            --verde-figura: #6c7b5a;
         }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; overflow: hidden; height: 100vh; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
+        /* Capas de Interfaz (Tarjetas Blancas Estilo Canva) */
         #setup-screen, #instruction-screen, #msg-screen, #next-level-screen { 
-            position: fixed; inset: 0; background: var(--bg); z-index: 2000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 20px; text-align: center; 
+            position: fixed; inset: 0; background: var(--bg-dark); z-index: 2000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
         }
 
-        /* Ficha de Habilidades */
-        .ficha-objetivos {
-            background: rgba(244, 114, 182, 0.05);
-            border: 2px solid rgba(244, 114, 182, 0.2);
-            border-radius: 24px; padding: 25px; margin: 20px 0; max-width: 450px; text-align: left;
+        .card-blanca {
+            background: #ffffff; color: #1e293b; border-radius: 32px; padding: 35px;
+            width: 90%; max-width: 450px; box-shadow: 0 25px 60px rgba(0,0,0,0.7); text-align: left;
         }
-        .obj-item { display: flex; align-items: center; margin-bottom: 15px; }
-        .obj-icon { font-size: 1.8rem; margin-right: 20px; background: var(--card); min-width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 15px; }
-        .obj-texto b { color: var(--accent); display: block; }
-        .obj-texto span { font-size: 0.9rem; color: #94a3b8; }
 
-        .btn-grande { background: var(--accent); color: white; padding: 18px 45px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; box-shadow: 0 5px 15px rgba(244, 114, 182, 0.3); transition: 0.3s; }
-        .btn-grande:hover { transform: scale(1.05); }
+        .obj-item { display: flex; align-items: center; margin-bottom: 15px; background: #f8fafc; padding: 14px; border-radius: 20px; border: 1px solid #f1f5f9; }
+        .obj-icon { font-size: 1.5rem; margin-right: 15px; background: white; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .obj-texto b { display: block; color: #334155; font-size: 1rem; }
+        .obj-texto span { font-size: 0.85rem; color: #64748b; line-height: 1.2; }
 
-        /* Estímulos Binoculares (Rojo/Verde) */
-        #game-area { flex-grow: 1; width: 100%; position: relative; display: flex; justify-content: center; align-items: center; }
-        .binocular-target { 
-            font-size: 120px; font-weight: bold; position: absolute; cursor: pointer; user-select: none;
-            transition: all 0.1s ease;
-        }
-        .rojo { color: #ff0000; mix-blend-mode: screen; }
-        .verde { color: #00ff00; mix-blend-mode: screen; }
+        .btn-grande { background: var(--accent-pink); color: white; padding: 18px; border-radius: 16px; font-weight: bold; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; transition: 0.3s; box-shadow: 0 8px 20px rgba(233, 30, 99, 0.3); }
+        .btn-grande:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-        .header-clinico { width: 100%; background: rgba(30, 41, 59, 0.9); padding: 15px; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-around; font-weight: bold; }
-        .stat-val { color: var(--accent); font-size: 1.3rem; display: block; }
+        /* Área de Juego */
+        #game-area { flex-grow: 1; position: relative; display: flex; overflow: hidden; cursor: crosshair; }
+        .lado { width: 50%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
+        #lado-rojo { background-color: var(--rojo-fondo); }
+        #lado-verde { background-color: var(--verde-fondo); }
+
+        .figura { position: absolute; font-weight: bold; user-select: none; transition: font-size 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #fig-roja { color: var(--rojo-figura); }
+        #fig-verde { color: var(--verde-figura); }
+
+        .header-clinico { width: 100%; background: #1e293b; padding: 15px; border-bottom: 4px solid var(--accent-pink); display: flex; justify-content: space-around; z-index: 100; box-sizing: border-box; }
+        .stat-val { color: var(--accent-pink); font-size: 1.4rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
-        <h1 style="color:var(--accent); font-size: 2.5rem;">INTEGRACIÓN BINOCULAR</h1>
-        <input type="text" id="nombrePaciente" style="padding:15px; border-radius:12px; border:2px solid var(--accent); background:var(--card); color:white; width:300px;" placeholder="Nombre del Paciente">
-        <button class="btn-grande" onclick="mostrarInstrucciones()">Continuar</button>
+        <div class="card-blanca">
+            <h2 style="margin:0 0 10px 0; text-align:center; color: #0f172a;">Integración Binocular</h2>
+            <p style="text-align:center; color:#64748b; margin-bottom:25px;">Módulo de Fusión Progresiva</p>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-left: 5px;">PACIENTE</label>
+            <input type="text" id="nombrePaciente" style="width:100%; padding:16px; border-radius:14px; border:2px solid #e2e8f0; margin-top:8px; box-sizing:border-box; font-size:1.1rem; outline-color: var(--accent-pink);" placeholder="Escribe el nombre...">
+            <button class="btn-grande" onclick="mostrarInstrucciones()">Continuar</button>
+        </div>
     </div>
 
     <div id="instruction-screen" style="display:none">
-        <h2 style="color:var(--accent)">¡Prepara tus gafas! 👓</h2>
-        <div class="ficha-objetivos">
+        <div class="card-blanca">
+            <h3 style="margin:0 0 20px 0; color: #1e293b; text-align:center;">¿Qué trabajaremos hoy?</h3>
             <div class="obj-item">
                 <div class="obj-icon">🧩</div>
-                <div class="obj-texto"><b>Fusión Sensorial</b><span>Obliga a ambos ojos a trabajar para ver una sola imagen clara.</span></div>
+                <div class="obj-texto"><b>Fusión Sensorial</b><span>Combinar las imágenes de ambos ojos en una sola.</span></div>
             </div>
             <div class="obj-item">
                 <div class="obj-icon">🚦</div>
-                <div class="obj-texto"><b>Anti-Supresión</b><span>Evita que el cerebro ignore la señal de uno de los ojos.</span></div>
+                <div class="obj-texto"><b>Control de Supresión</b><span>Activar la visión binocular para ver la figura oculta.</span></div>
             </div>
             <div class="obj-item">
                 <div class="obj-icon">👁️</div>
-                <div class="obj-texto"><b>Atención Visual</b><span>Mejora la fijación bimanual coordinada.</span></div>
+                <div class="obj-texto"><b>Fijación Dinámica</b><span>Seguir el objetivo mientras cambia de tamaño y lugar.</span></div>
             </div>
+            <button class="btn-grande" onclick="comenzarJuego()">¡Empezar Terapia!</button>
         </div>
-        <button class="btn-grande" onclick="comenzarJuego()">¡Empezar Misión!</button>
     </div>
 
     <div id="next-level-screen" style="display:none">
-        <h2 style="color:var(--success); font-size: 2.5rem;">¡Nivel Superado!</h2>
-        <button class="btn-grande" onclick="iniciarNivel()">Siguiente Nivel ➔</button>
+        <h1 style="color:white; font-size: 3.5rem; text-shadow: 0 0 30px var(--accent-pink); margin-bottom: 10px;">¡LOGRADO!</h1>
+        <p style="color: #cbd5e1; font-size: 1.2rem; margin-bottom: 20px;">Fusión mantenida con éxito</p>
+        <button class="btn-grande" style="width:280px" onclick="iniciarNivel()">Siguiente Nivel ➔</button>
     </div>
 
     <div id="msg-screen" style="display:none">
-        <h1 style="color:var(--accent)">Sesión Guardada</h1>
-        <p id="msg-subtitulo" style="font-size: 1.2rem; white-space: pre-wrap;"></p>
-        <button class="btn-grande" onclick="location.reload()">Terminar</button>
+        <div class="card-blanca" style="text-align:center;">
+            <div style="font-size: 4rem; margin-bottom: 10px;">✅</div>
+            <h2 style="color:#0f172a; margin:0;">Sesión Guardada</h2>
+            <p id="resumen-final" style="line-height:1.6; color:#475569; background: #f1f5f9; padding: 15px; border-radius: 15px; margin: 20px 0;"></p>
+            <button class="btn-grande" onclick="location.reload()">Terminar</button>
+        </div>
     </div>
 
     <div class="header-clinico">
-        <div>NIVEL <span id="val-nivel" class="stat-val">1</span></div>
-        <div>ACIERTOS <span id="val-ok" class="stat-val">0</span></div>
-        <div>FALLOS <span id="val-err" style="color:var(--error)" class="stat-val">0</span></div>
-        <div>TIEMPO <span id="val-timer" class="stat-val">0.0s</span></div>
+        <div><span class="stat-label">Nivel</span><span id="val-nivel" class="stat-val">1</span></div>
+        <div><span class="stat-label">Aciertos</span><span id="val-ok" class="stat-val">0</span></div>
+        <div><span class="stat-label">Fallos</span><span id="val-err" style="color:#ef4444" class="stat-val">0</span></div>
+        <div><span class="stat-label">Tiempo</span><span id="val-timer" class="stat-val">0.0s</span></div>
     </div>
 
     <div id="game-area">
-        <div id="target-rojo" class="binocular-target rojo" onclick="evaluar(true)">E</div>
-        <div id="target-verde" class="binocular-target verde" onclick="evaluar(false)">E</div>
+        <div id="lado-rojo" class="lado">
+            <div id="fig-roja" class="figura" onclick="registrarAcierto()">E</div>
+        </div>
+        <div id="lado-verde" class="lado">
+            <div id="fig-verde" class="figura" onclick="registrarAcierto()">E</div>
+        </div>
     </div>
 
     <script>
-        let paciente = "", nivel = 1, aciertos = 0, fallos = 0, targetCorrecto = "";
-        let startTime, timerInterval, jugando = false;
+        let paciente = "", nivel = 1, aciertosNivel = 0, aciertosTotales = 0, fallos = 0;
+        let posX, posY, velX, velY, size;
+        let jugando = false, startTime, timerInterval;
 
         function mostrarInstrucciones() {
             paciente = document.getElementById('nombrePaciente').value.trim();
-            if(!paciente) return alert("Pon el nombre");
+            if(!paciente) return alert("Por favor, ingresa el nombre del paciente.");
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('instruction-screen').style.display = 'flex';
         }
@@ -115,42 +131,56 @@
 
         function iniciarNivel() {
             document.getElementById('next-level-screen').style.display = 'none';
-            document.getElementById('val-nivel').innerText = nivel;
             jugando = true;
-            resetTimer();
-            startTimer();
-            posicionarEstímulos();
+            aciertosNivel = 0;
+            document.getElementById('val-nivel').innerText = nivel;
+            
+            // Tamaño progresivo: disminuye para aumentar dificultad
+            size = Math.max(45, 160 - (nivel * 20));
+            document.getElementById('fig-roja').style.fontSize = size + 'px';
+            document.getElementById('fig-verde').style.fontSize = size + 'px';
+
+            posX = 50; posY = 50;
+            velX = (2 + nivel * 0.4); 
+            velY = (2 + nivel * 0.4);
+            
+            resetTimer(); startTimer();
+            requestAnimationFrame(mover);
         }
 
-        function posicionarEstímulos() {
-            const chars = ["E", "H", "O", "X", "U"];
-            const char = chars[Math.floor(Math.random() * chars.length)];
-            const x = Math.random() * (window.innerWidth - 200) + 100;
-            const y = Math.random() * (window.innerHeight - 300) + 200;
-            
-            // Disparidad controlada por nivel para forzar fusión
-            const disparidad = Math.max(0, 30 - (nivel * 3)); 
-            
-            const tr = document.getElementById('target-rojo');
-            const tv = document.getElementById('target-verde');
-            
-            tr.innerText = char; tv.innerText = char;
-            tr.style.left = (x - disparidad) + 'px'; tr.style.top = y + 'px';
-            tv.style.left = (x + disparidad) + 'px'; tv.style.top = y + 'px';
-        }
-
-        function evaluar(esRojo) {
+        function mover() {
             if(!jugando) return;
-            // En integración pura, tocar cualquiera de los dos fusionados cuenta como acierto
-            aciertos++;
-            document.getElementById('val-ok').innerText = aciertos;
+            const areaW = window.innerWidth / 2;
+            const areaH = window.innerHeight - 100;
+
+            posX += velX; posY += velY;
+
+            if(posX <= 10 || posX >= areaW - size) velX *= -1;
+            if(posY <= 10 || posY >= areaH - size) velY *= -1;
+
+            document.getElementById('fig-roja').style.left = posX + 'px';
+            document.getElementById('fig-roja').style.top = posY + 'px';
+            document.getElementById('fig-verde').style.left = posX + 'px';
+            document.getElementById('fig-verde').style.top = posY + 'px';
+
+            requestAnimationFrame(mover);
+        }
+
+        function registrarAcierto() {
+            if(!jugando) return;
+            aciertosNivel++;
+            aciertosTotales++;
+            document.getElementById('val-ok').innerText = aciertosTotales;
             
-            if(aciertos % 5 === 0) {
+            if(aciertosNivel >= 5) {
                 jugando = false; stopTimer();
-                document.getElementById('next-level-screen').style.display = 'flex';
-                nivel++;
+                if(nivel >= 5) { finalizarYEnviar(); } 
+                else { document.getElementById('next-level-screen').style.display = 'flex'; nivel++; }
             } else {
-                posicionarEstímulos();
+                const letras = ["E", "H", "O", "X", "U", "V"];
+                const nueva = letras[Math.floor(Math.random()*letras.length)];
+                document.getElementById('fig-roja').innerText = nueva;
+                document.getElementById('fig-verde').innerText = nueva;
             }
         }
 
@@ -164,21 +194,21 @@
         function resetTimer() { document.getElementById('val-timer').innerText = "0.0s"; }
 
         function finalizarYEnviar() {
-            stopTimer();
             const tiempoFinal = document.getElementById('val-timer').innerText;
-            const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdxsgdNOW4NRJU_jpePwURa6aiX89o-X5b90ofN6zxs396eEg/formResponse";
+            const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfcw4zd4GvGH8TVc_C2oWJOAHQbZ2PM_uRlREwbjeOq6HdXIQ/formResponse";
             
             const fd = new FormData();
-            fd.append("entry.76353775", paciente);
-            fd.append("entry.1871220940", "Integración binocular");
-            fd.append("entry.839149548", nivel);
-            fd.append("entry.356606780", aciertos);
-            fd.append("entry.239436075", fallos);
-            fd.append("entry.1745748054", tiempoFinal);
-            fd.append("entry.534957775", new Date().toISOString().split('T')[0]);
+            fd.append("entry.1571018380", paciente);
+            fd.append("entry.1811640882", "Integración binocular camuflada");
+            fd.append("entry.1634944997", nivel);
+            fd.append("entry.991256689", aciertosTotales);
+            fd.append("entry.726859582", fallos);
+            fd.append("entry.1808531736", tiempoFinal);
+            fd.append("entry.651647598", new Date().toISOString().split('T')[0]);
 
             fetch(URL_FORM, { method: "POST", mode: "no-cors", body: fd });
-            document.getElementById('msg-subtitulo').innerText = `Paciente: ${paciente}\nNivel: ${nivel}\nResumen guardado en Excel.`;
+
+            document.getElementById('resumen-final').innerText = `Paciente: ${paciente}\nNiveles: ${nivel}\nAciertos: ${aciertosTotales}\nTiempo: ${tiempoFinal}`;
             document.getElementById('msg-screen').style.display = 'flex';
         }
     </script>
