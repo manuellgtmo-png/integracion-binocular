@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v11 - Sincronizado</title>
+    <title>Integración Binocular Clínica v2</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,7 +13,6 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
-        /* Barra Profesional */
         #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: fixed; top: 0; width: 100%; box-sizing: border-box; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
@@ -25,7 +24,7 @@
         
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); margin-top: 0; }
+        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
         .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
         
         #game-container { display: flex; height: calc(100vh - 110px); }
@@ -56,48 +55,24 @@
         <h1 style="color:var(--accent-pink); margin:0;">BIENVENIDO</h1>
         <input type="text" id="paciente" placeholder="Nombre del Paciente">
         <input type="text" id="profesional" placeholder="Profesional a cargo">
-        <button class="btn" onclick="showIntro()">SIGUIENTE</button>
-    </div>
-</div>
-
-<div id="screen-intro" class="overlay" style="display:none">
-    <div class="card">
-        <h2 style="color:var(--accent-pink);">¿Cómo jugar?</h2>
-        <div style="text-align:left; color:#2d3436; font-size: 0.9rem; line-height: 1.5;">
-            <p>🕶️ <b>Paso 1:</b> Ponte tus gafas <b>Rojo/Verde</b>.</p>
-            <p>🔍 <b>Paso 2:</b> Mira la letra del centro arriba.</p>
-            <p>👆 <b>Paso 3:</b> Toca esa misma letra en la pantalla.</p>
-            <p>⚠️ <b>Paso 4:</b> ¡No toques el fondo!</p>
-        </div>
-        <button class="btn" onclick="showSkills()">ENTENDIDO</button>
-    </div>
-</div>
-
-<div id="screen-skills" class="overlay" style="display:none">
-    <div class="card" style="background:#16213e; color:white;">
-        <h2 style="color:var(--accent-blue);">✨ Habilidades a trabajar:</h2>
-        <div style="text-align:left; margin: 20px 0; font-size: 0.9rem; line-height: 1.6;">
-            <p>👁️ <b>Antisupresión:</b> Activa el ojo vago.</p>
-            <p>🎯 <b>Fusión Plana:</b> Une las imágenes.</p>
-            <p>🚀 <b>Coordinación:</b> Ojo-mano precisa.</p>
-        </div>
-        <button class="btn" onclick="startGame()">¡EMPEZAR!</button>
+        <button class="btn" onclick="startGame()">EMPEZAR SESIÓN</button>
     </div>
 </div>
 
 <div id="screen-next" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:#009955; margin:0;">¡NIVEL SUPERADO!</h1>
-        <button class="btn btn-next" onclick="iniciarNivel()">SIGUIENTE NIVEL ➔</button>
+        <h1 style="color:#009955; margin:0;">NIVEL SUPERADO</h1>
+        <p>Aumentando velocidad...</p>
+        <button class="btn btn-next" onclick="iniciarNivel()">CONTINUAR ➔</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando con Excel...</div>
+        <h1 style="color:var(--accent-pink); margin:0;">FIN DE SESIÓN</h1>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando...</div>
         <p id="resumen-final" style="font-size:0.9rem; color:#636e72;"></p>
-        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="finalForceReload()">VOLVER AL INICIO</button>
+        <button class="btn" onclick="location.reload()">NUEVA SESIÓN</button>
     </div>
 </div>
 
@@ -120,24 +95,27 @@
     let jugando = false, sessionStartTime, objActual = "";
     let elementos = [];
     const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
+    
+    // Generador de sonido sintético (no requiere archivos externos)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSuccessSound() {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.type = "sine"; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    }
 
     function activarAdmin() {
-        if(prompt("Clave Profesional:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
-    }
-
-    function showIntro() {
-        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Completa los datos.");
-        document.getElementById('screen-start').style.display = 'none';
-        document.getElementById('screen-intro').style.display = 'flex';
-    }
-
-    function showSkills() {
-        document.getElementById('screen-intro').style.display = 'none';
-        document.getElementById('screen-skills').style.display = 'flex';
+        if(prompt("Clave:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
     }
 
     function startGame() {
-        document.getElementById('screen-skills').style.display = 'none';
+        if(!document.getElementById('paciente').value) return alert("Ingresa el nombre.");
+        document.getElementById('screen-start').style.display = 'none';
         sessionStartTime = Date.now();
         iniciarNivel();
     }
@@ -157,24 +135,43 @@
         document.getElementById('lado-rojo').innerHTML = "";
         document.getElementById('lado-verde').innerHTML = "";
         elementos = [];
-        const cant = 2 + nivel;
-        for(let i=0; i<cant; i++) { crear(true, 'rojo'); crear(true, 'verde'); }
-        for(let i=0; i<nivel*3; i++) { crear(false, 'rojo'); crear(false, 'verde'); }
+        const cantEstimulos = 2 + Math.floor(nivel/2);
+        const cantDistractores = nivel * 2;
+        
+        for(let i=0; i<cantEstimulos; i++) { crear(true, 'rojo'); crear(true, 'verde'); }
+        for(let i=0; i<cantDistractores; i++) { crear(false, 'rojo'); crear(false, 'verde'); }
     }
 
     function crear(esObj, lado) {
         const div = document.createElement('div');
         div.className = "figura";
         div.innerText = esObj ? objActual : formas.filter(f => f !== objActual)[Math.floor(Math.random()*5)];
-        const size = (Math.max(35, 140 - (nivel * 6))) * (Math.random() * 0.7 + 0.6);
+        
+        // El tamaño disminuye con el nivel
+        const baseSize = Math.max(30, 120 - (nivel * 4));
+        const size = baseSize * (Math.random() * 0.5 + 0.7);
+        
         div.style.fontSize = size + 'px';
         div.style.color = lado === 'rojo' ? 'var(--rojo-figura)' : 'var(--verde-figura)';
-        const el = { dom: div, x: Math.random()*(window.innerWidth/2-80), y: Math.random()*(window.innerHeight-250), 
-                     vx: (Math.random()-0.5)*(1.5+nivel*0.3), vy: (Math.random()-0.5)*(1.5+nivel*0.3), size, esObj };
+        
+        // La velocidad aumenta con el nivel
+        const speedMult = 1 + (nivel * 0.25);
+        const el = { 
+            dom: div, 
+            x: Math.random()*(window.innerWidth/2-80), 
+            y: Math.random()*(window.innerHeight-250), 
+            vx: (Math.random()-0.5) * speedMult, 
+            vy: (Math.random()-0.5) * speedMult, 
+            size, esObj 
+        };
+
         div.onclick = (e) => {
             e.stopPropagation();
             if(esObj) { 
-                div.remove(); elementos = elementos.filter(i => i !== el); totalAciertos++;
+                playSuccessSound();
+                div.remove(); 
+                elementos = elementos.filter(i => i !== el); 
+                totalAciertos++;
                 document.getElementById('txt-ok').innerText = totalAciertos;
                 if(elementos.filter(e => e.esObj).length === 0) passLevel();
             } else failClick();
@@ -185,7 +182,7 @@
 
     function update() {
         if(!jugando) return;
-        const w = window.innerWidth/2, h = window.innerHeight-100;
+        const w = window.innerWidth/2, h = window.innerHeight-110;
         elementos.forEach(el => {
             el.x += el.vx; el.y += el.vy;
             if(el.x < 0 || el.x > w - el.size) el.vx *= -1;
@@ -204,18 +201,21 @@
         document.getElementById('txt-vidas').innerText = vidas;
         if(vidas <= 0) { 
             jugando = false;
-            document.getElementById('resumen-final').innerText = `Reporte enviado para ${document.getElementById('paciente').value}.`;
             document.getElementById('screen-end').style.display = 'flex';
-            enviarAutomatico();
+            enviarDatos();
         }
     }
 
-    function passLevel() { jugando = false; nivel++; document.getElementById('screen-next').style.display = 'flex'; }
+    function passLevel() { 
+        jugando = false; 
+        nivel++; 
+        document.getElementById('screen-next').style.display = 'flex'; 
+    }
 
-    function enviarAutomatico() {
-        // LINK DEL FORMULARIO PUBLICADO
+    function enviarDatos() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const fd = new FormData();
+        // Asegúrate de que estos IDs correspondan a tu formulario actual
         fd.append("entry.369874016", document.getElementById('paciente').value);
         fd.append("entry.1353470174", "Integración Binocular (Prof: " + document.getElementById('profesional').value + ")");
         fd.append("entry.721051298", nivel);
@@ -225,22 +225,12 @@
         fd.append("entry.845098414", new Date().toLocaleDateString());
 
         fetch(url, { method: "POST", mode: "no-cors", body: fd })
-        .then(() => {
-            document.getElementById('status-envio').innerHTML = "✅ DATOS SINCRONIZADOS";
-        })
-        .catch(() => {
-            document.getElementById('status-envio').innerHTML = "⚠️ Error de red. Intenta de nuevo.";
-        });
-    }
-
-    function finalForceReload() {
-        enviarAutomatico(); 
-        setTimeout(() => { location.reload(); }, 600);
+        .then(() => document.getElementById('status-envio').innerText = "✅ REPORTE EN TU DRIVE")
+        .catch(() => document.getElementById('status-envio').innerText = "⚠️ ERROR DE CONEXIÓN");
     }
 </script>
 </body>
 </html>
-
 
 
 
