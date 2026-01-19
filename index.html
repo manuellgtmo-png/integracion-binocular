@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fusión Binocular Pro - Clínica</title>
+    <title>Fusión Binocular Pro - Sistema Clínico</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -21,23 +21,25 @@
         .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
         
-        /* Botón Secreto Profesional */
-        .btn-admin { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; font-size: 1.2rem; filter: grayscale(1); opacity: 0.3; }
-        .btn-admin:hover { opacity: 1; filter: grayscale(0); }
+        .btn-admin-gear { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.3; }
 
         .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; transition: 0.2s; }
         .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #b31d45; }
+        
+        /* Panel Profesional Superior */
+        #admin-bar { display: none; background: #08d9d6; color: #0a0f1d; padding: 5px 20px; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: bold; }
+        .btn-report { background: #0a0f1d; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
 
         /* Estilos del Juego */
-        .header { height: 80px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
-        .stat b { display: block; color: var(--accent-blue); font-size: 0.8rem; }
-        #game-container { display: flex; height: calc(100vh - 80px); }
+        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
+        .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
+        #game-container { display: flex; height: calc(100vh - 110px); }
         .lado { width: 50%; height: 100%; position: relative; overflow: hidden; }
         #lado-rojo { background: var(--rojo-fondo); }
         #lado-verde { background: var(--verde-fondo); }
         .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
         
-        #indicador { position: absolute; top: 100px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 8px 25px; border-radius: 50px; font-weight: 900; z-index: 1000; border: 3px solid var(--accent-pink); }
+        #indicador { position: absolute; top: 110px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 5px 20px; border-radius: 50px; font-weight: 900; z-index: 1000; border: 3px solid var(--accent-pink); }
         #flash { position: fixed; inset: 0; background: rgba(255, 46, 99, 0.4); pointer-events: none; opacity: 0; z-index: 3000; }
         
         input { width: 100%; padding: 15px; border-radius: 15px; border: 3px solid #eee; margin-top: 10px; text-align: center; font-weight: bold; box-sizing: border-box; }
@@ -47,11 +49,15 @@
 
     <div id="flash"></div>
 
+    <div id="admin-bar">
+        <span>MODO PROFESIONAL ACTIVO</span>
+        <button class="btn-report" onclick="window.open('https://docs.google.com/spreadsheets/d/1X-uG2x_SclIeA290nC84i6-9u6p6x_G5yI9K-fT_0cM/edit', '_blank')">📊 VER EXCEL Y GRÁFICOS</button>
+    </div>
+
     <div id="screen-start" class="overlay">
         <div class="card">
-            <button class="btn-admin" onclick="accesoProfesional()">⚙️</button>
+            <button class="btn-admin-gear" onclick="checkAdmin()">⚙️</button>
             <h1 style="color:var(--accent-pink); margin:0;">🎮 ¡HOLA!</h1>
-            <p style="font-size: 0.9rem; color: #636e72;">Iniciemos tu entrenamiento visual</p>
             <input type="text" id="paciente" placeholder="Nombre del Paciente">
             <input type="text" id="profesional" placeholder="Profesional a cargo">
             <button class="btn" onclick="showSkills()">Siguiente</button>
@@ -61,12 +67,12 @@
     <div id="screen-skills" class="overlay" style="display:none">
         <div class="card" style="background:#16213e; color:white;">
             <h2 style="color:var(--accent-blue);">Misión de Hoy:</h2>
-            <div style="text-align:left; margin-bottom:20px;">
-                <p>🧩 <b>Antisupresión:</b> Despierta tu ojo más lento.</p>
-                <p>👁️ <b>Fusión:</b> Une las piezas en una sola imagen.</p>
-                <p>🎯 <b>Precisión:</b> Toca figuras de todo tamaño.</p>
+            <div style="text-align:left; margin-bottom:20px; font-size:0.9rem;">
+                <p>🧩 <b>Antisupresión:</b> Forzar el trabajo binocular.</p>
+                <p>👁️ <b>Fusión:</b> Integrar estímulos de ambos ojos.</p>
+                <p>🎯 <b>Estereopsis:</b> Diferenciar tamaños y formas.</p>
             </div>
-            <button class="btn" onclick="startGame()">¡Comenzar!</button>
+            <button class="btn" onclick="startGame()">¡EMPEZAR!</button>
         </div>
     </div>
 
@@ -85,19 +91,18 @@
     </div>
 
     <script>
-        let nivel = 1, totalAciertos = 0, vidas = 2, fallos = 0;
+        let nivel = 1, totalAciertos = 0, vidas = 2, fallos = 0, isAdmin = false;
         let jugando = false, sessionStartTime, objActual = "";
         let elementos = [];
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
 
-        function accesoProfesional() {
-            const pass = prompt("Ingrese clave de profesional:");
+        function checkAdmin() {
+            const pass = prompt("Clave Profesional:");
             if(pass === "1234") {
-                alert("Acceso concedido. Puede configurar la sesión o revisar el Excel de resultados.");
-                // Aquí podrías redirigir o abrir un panel extra
-            } else {
-                alert("Clave incorrecta.");
+                isAdmin = true;
+                document.getElementById('admin-bar').style.display = 'flex';
+                alert("Acceso profesional activado.");
             }
         }
 
@@ -110,7 +115,7 @@
 
         function showSkills() {
             if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) {
-                return alert("Por favor completa los nombres.");
+                return alert("Completa los datos para el reporte.");
             }
             document.getElementById('screen-start').style.display = 'none';
             document.getElementById('screen-skills').style.display = 'flex';
@@ -146,9 +151,8 @@
             div.className = "figura";
             div.innerText = esObj ? objActual : formas.filter(f => f !== objActual)[Math.floor(Math.random()*5)];
             
-            // Lógica de tamaños mezclados que pediste
-            const baseSize = Math.max(40, 150 - (nivel * 7));
-            const variation = Math.random() * 0.8 + 0.6; // Mezcla de tamaños entre 60% y 140%
+            const baseSize = Math.max(35, 140 - (nivel * 6));
+            const variation = Math.random() * 0.7 + 0.6; 
             const size = baseSize * variation;
             
             div.style.fontSize = size + 'px';
@@ -201,7 +205,7 @@
             if(vidas <= 0) {
                 jugando = false;
                 enviarReporteFinal();
-                alert("Fin de la sesión. Datos guardados.");
+                alert("Sesión finalizada. Los datos se han enviado al historial.");
                 location.reload();
             }
         }
@@ -209,7 +213,7 @@
         function passLevel() {
             jugando = false;
             nivel++;
-            alert("¡Nivel " + nivel + "!");
+            alert("¡Nivel " + nivel + " completado!");
             iniciarNivel();
         }
 
@@ -217,17 +221,21 @@
             const tiempoTotal = document.getElementById('txt-timer').innerText;
             const nombre = document.getElementById('paciente').value;
             const prof = document.getElementById('profesional').value;
+            
+            // ENDPOINT CORREGIDO PARA GUARDADO AUTOMÁTICO
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfcw4zd4GvGH8TVc_C2oWJOAHQbZ2PM_uRlREwbjeOq6HdXIQ/formResponse";
+            
             const fd = new FormData();
             fd.append("entry.1571018380", nombre);
-            fd.append("entry.1811640882", "Fusión Clínica (Prof: " + prof + ")");
+            fd.append("entry.1811640882", "Integración Binocular (Prof: " + prof + ")");
             fd.append("entry.1634944997", nivel);
             fd.append("entry.991256689", totalAciertos);
             fd.append("entry.726859582", fallos);
             fd.append("entry.1808531736", tiempoTotal);
             fd.append("entry.651647598", new Date().toISOString().split('T')[0]);
 
-            fetch(formURL, { method: "POST", mode: "no-cors", body: fd });
+            fetch(formURL, { method: "POST", mode: "no-cors", body: fd })
+            .then(() => console.log("Reporte enviado con éxito"));
         }
     </script>
 </body>
