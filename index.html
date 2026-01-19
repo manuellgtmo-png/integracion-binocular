@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v8 - Final</title>
+    <title>Integración Binocular Clínica v10</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,15 +13,15 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
-        /* Barra Profesional */
+        /* Barra Profesional Independiente */
         #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: relative; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
+        .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 95%; max-width: 450px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
         
         .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; transition: 0.2s; }
-        .btn-next { background: #00ff88; color: #003311; box-shadow: 0 8px 0 #009955; font-size: 1.5rem; animation: pulse 1.5s infinite; margin-top: 25px; }
+        .btn-next { background: #00ff88; color: #003311; box-shadow: 0 8px 0 #009955; font-size: 1.5rem; animation: pulse 1.5s infinite; }
         
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
@@ -47,7 +47,7 @@
 
 <div id="admin-bar">
     <span>MODO PROFESIONAL ACTIVO</span>
-    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 BUSCAR PACIENTE / EXCEL</button>
+    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">🔍 BUSCAR PACIENTE EN EXCEL</button>
 </div>
 
 <div id="screen-start" class="overlay">
@@ -60,6 +60,19 @@
     </div>
 </div>
 
+<div id="screen-intro" class="overlay" style="display:none">
+    <div class="card">
+        <h2 style="color:var(--accent-pink);">¿Cómo jugar?</h2>
+        <div style="text-align:left; color:#2d3436; font-size: 0.9rem; line-height: 1.5;">
+            <p>🕶️ <b>Paso 1:</b> Colócate tus gafas <b>Rojo/Verde</b>.</p>
+            <p>🔍 <b>Paso 2:</b> Mira la letra que aparece en el centro arriba.</p>
+            <p>👆 <b>Paso 3:</b> Toca <u>solo</u> esa letra en el lado rojo o verde.</p>
+            <p>⚠️ <b>Paso 4:</b> Tienes 2 vidas. ¡No toques el fondo!</p>
+        </div>
+        <button class="btn" onclick="showSkills()">ENTENDIDO</button>
+    </div>
+</div>
+
 <div id="screen-skills" class="overlay" style="display:none">
     <div class="card" style="background:#16213e; color:white;">
         <h2 style="color:var(--accent-blue);">✨ Habilidades a trabajar:</h2>
@@ -67,26 +80,25 @@
             <p>👁️ <b>Antisupresión:</b> Estimula el ojo vago.</p>
             <p>🎯 <b>Fusión Plana:</b> Integra ambas imágenes.</p>
             <p>🚀 <b>Coordinación:</b> Ojo-mano en tiempo real.</p>
-            <p>🧠 <b>Atención:</b> Selección visual dinámica.</p>
         </div>
-        <button class="btn" onclick="startGame()">¡EMPEZAR JUEGO!</button>
+        <button class="btn" onclick="startGame()">¡EMPEZAR!</button>
     </div>
 </div>
 
 <div id="screen-next" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:#009955; margin:0;">¡NIVEL SUPERADO!</h1>
-        <p>Tu visión binocular está mejorando.</p>
+        <h1 style="color:#009955; margin:0;">¡BIEN HECHO!</h1>
+        <p>Has superado el nivel con éxito.</p>
         <button class="btn btn-next" onclick="iniciarNivel()">SIGUIENTE NIVEL ➔</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Guardando resultados...</div>
+        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN FINALIZADA</h1>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando datos...</div>
         <p id="resumen-final" style="font-size:0.9rem; color:#636e72;"></p>
-        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="enviarYReiniciar()">VOLVER AL INICIO</button>
+        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="finalForceReload()">SALIR AL INICIO</button>
     </div>
 </div>
 
@@ -111,12 +123,17 @@
     const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
 
     function unlockAdmin() {
-        if(prompt("Clave:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
+        if(prompt("Clave Profesional:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
     }
 
     function showIntro() {
-        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Completa los datos.");
+        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Ingresa los nombres.");
         document.getElementById('screen-start').style.display = 'none';
+        document.getElementById('screen-intro').style.display = 'flex';
+    }
+
+    function showSkills() {
+        document.getElementById('screen-intro').style.display = 'none';
         document.getElementById('screen-skills').style.display = 'flex';
     }
 
@@ -188,46 +205,43 @@
         document.getElementById('txt-vidas').innerText = vidas;
         if(vidas <= 0) { 
             jugando = false;
-            document.getElementById('resumen-final').innerText = `Paciente: ${document.getElementById('paciente').value} - Nivel Alcanzado: ${nivel}`;
+            document.getElementById('resumen-final').innerText = `Resultados finales guardados para ${document.getElementById('paciente').value}.`;
             document.getElementById('screen-end').style.display = 'flex';
-            enviarDatos(); // Intento automático 1
+            enviarAutomatico();
         }
     }
 
-    function passLevel() { 
-        jugando = false; 
-        nivel++; 
-        document.getElementById('screen-next').style.display = 'flex'; 
-    }
+    function passLevel() { jugando = false; nivel++; document.getElementById('screen-next').style.display = 'flex'; }
 
-    function enviarDatos() {
+    function enviarAutomatico() {
+        // IMPORTANTE: Verifica que estos IDs correspondan a las columnas de tu Excel
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const fd = new FormData();
         fd.append("entry.369874016", document.getElementById('paciente').value);
-        fd.append("entry.1353470174", "Fusión Clínica (Prof: " + document.getElementById('profesional').value + ")");
+        fd.append("entry.1353470174", "Integración Binocular (Prof: " + document.getElementById('profesional').value + ")");
         fd.append("entry.721051298", nivel);
         fd.append("entry.873272199", totalAciertos);
         fd.append("entry.1030094511", fallos);
         fd.append("entry.1303309812", document.getElementById('txt-timer').innerText);
-        fd.append("entry.845098414", new Date().toISOString().split('T')[0]);
+        fd.append("entry.845098414", new Date().toLocaleDateString());
 
-        // Usamos sendBeacon para asegurar que el navegador envíe los datos incluso si se cierra la pestaña
-        navigator.sendBeacon(url, fd);
-        
-        // También fetch como refuerzo
         fetch(url, { method: "POST", mode: "no-cors", body: fd })
         .then(() => {
-            document.getElementById('status-envio').innerHTML = "✅ Resultados sincronizados con el Excel.";
+            document.getElementById('status-envio').innerHTML = "✅ DATOS ENVIADOS AL EXCEL";
+        })
+        .catch(() => {
+            document.getElementById('status-envio').innerHTML = "⚠️ Reintentando conexión...";
         });
     }
 
-    function enviarYReiniciar() {
-        enviarDatos(); // Intento de respaldo antes de recargar
-        setTimeout(() => { location.reload(); }, 500);
+    function finalForceReload() {
+        enviarAutomatico(); // Último intento de respaldo
+        setTimeout(() => { location.reload(); }, 800);
     }
 </script>
 </body>
 </html>
+
 
 
 
