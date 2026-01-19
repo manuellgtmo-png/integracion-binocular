@@ -43,7 +43,6 @@
         .box-green .shape:not(.triangle) { background: var(--verde-figura); }
         .box-green .triangle { border-bottom-color: var(--verde-figura); }
 
-        /* Explosión corregida: ahora usa las variables de posición */
         @keyframes explode { 
             0% { transform: translate(var(--x), var(--y)) scale(1); opacity: 1; } 
             100% { transform: translate(var(--x), var(--y)) scale(2.5); opacity: 0; } 
@@ -70,7 +69,7 @@
         <p style="max-width: 400px; line-height: 1.6;">
             Ponte tus <b>gafas rojo-verde</b>.<br><br>
             Toca <b>únicamente</b> las figuras que se indiquen arriba.<br><br>
-            Las figuras explotarán al acertar y el juego se volverá más rápido.
+            La sesión terminará si cometes 3 errores en un mismo nivel.
         </p>
         <button class="btn-grande" onclick="iniciarJuego()">¡Empezar!</button>
     </div>
@@ -82,7 +81,7 @@
     </div>
 
     <div id="admin-panel" style="display:none">
-        <h3>Historial (Clave: 1234)</h3>
+        <h3>Historial Local (Clave: 1234)</h3>
         <table border="1" style="width:100%; border-collapse: collapse; background:#1e293b; font-size: 0.8rem;">
             <thead><tr><th>Fecha</th><th>Paciente</th><th>Niv</th><th>Fallos</th></tr></thead>
             <tbody id="cuerpoTabla"></tbody>
@@ -139,7 +138,7 @@
             canvas.innerHTML = "";
             figuras = [];
             erroresNivel = 0;
-            const cant = Math.floor(Math.random() * 10) + 12;
+            const cant = Math.floor(Math.random() * 5) + 10 + nivel; 
             objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
             document.getElementById('objetivo-texto').innerText = `Busca: ${objetivoActual}s`;
             
@@ -160,7 +159,7 @@
                 this.el = document.createElement('div');
                 this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
                 this.esRojo = Math.random() > 0.5;
-                this.size = Math.random() > 0.8 ? 70 : 110;
+                this.size = Math.random() > 0.8 ? 70 : 100;
                 this.x = Math.random() * (window.innerWidth - this.size);
                 this.y = Math.random() * (window.innerHeight - this.size - 140) + 120;
                 this.vx = (Math.random() - 0.5) * velocidadBase;
@@ -196,7 +195,6 @@
                     this.el.style.setProperty('--x', `${this.x}px`);
                     this.el.style.setProperty('--y', `${this.y}px`);
                     this.el.classList.add('exploding');
-                    figuras.forEach(f => { f.vx *= 1.05; f.vy *= 1.05; });
                     setTimeout(() => {
                         if(this.el.parentNode) canvas.removeChild(this.el);
                         figuras = figuras.filter(f => f !== this);
@@ -207,7 +205,11 @@
                     erroresTotales++;
                     this.el.style.boxShadow = "0 0 20px red";
                     setTimeout(() => this.el.style.boxShadow = "none", 300);
-                    if(erroresNivel >= 3) lanzarMensaje("Nivel Fallido", "Has cometido 3 errores.", "Reintentar");
+                    
+                    if(erroresNivel >= 3) {
+                        guardarDatos(); 
+                        lanzarMensaje("Sesión Finalizada", "Has cometido 3 errores en este nivel.", "Reiniciar Sesión");
+                    }
                 }
                 actualizarUI();
             }
@@ -215,30 +217,36 @@
 
         function completarNivel() {
             nivel++;
-            velocidadBase += 0.8;
-            guardarDatos();
-            lanzarMensaje("¡Nivel Completado!", "Velocidad aumentada.", "Siguiente Nivel");
+            velocidadBase += 0.5;
+            lanzarMensaje("¡Nivel Completado!", "Prepárate para el siguiente nivel.", "Siguiente Nivel");
         }
 
         function lanzarMensaje(t, s, b) {
             document.getElementById('msg-titulo').innerText = t;
             document.getElementById('msg-subtitulo').innerText = s;
-            document.querySelector('.btn-msg').innerText = b;
+            const btn = document.querySelector('.btn-msg');
+            btn.innerText = b;
+            
+            if(t === "Sesión Finalizada") {
+                btn.onclick = () => { location.reload(); };
+            } else {
+                btn.onclick = () => { prepararNivel(); };
+            }
             document.getElementById('msg-screen').style.display = 'flex';
         }
 
         function guardarDatos() {
-            // 1. Local
+            // LocalStorage
             let h = JSON.parse(localStorage.getItem('h_bin') || "[]");
-            h.push({f: new Date().toLocaleDateString(), p: paciente, n: nivel-1, e: erroresTotales});
+            h.push({f: new Date().toLocaleDateString(), p: paciente, n: nivel, e: erroresTotales});
             localStorage.setItem('h_bin', JSON.stringify(h));
 
-            // 2. Google Forms
+            // Google Forms
             const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLScIgP6SFKo8ACneK7EdifzxCyl8haYU7LLIys1NxjIiUklkWA/formResponse";
             const formData = new FormData();
             formData.append("entry.1971645483", paciente);
             formData.append("entry.1310127986", "Binocular - Figuras");
-            formData.append("entry.1881234158", nivel - 1);
+            formData.append("entry.1881234158", nivel);
             formData.append("entry.2029359389", aciertosTotales);
             formData.append("entry.2036354186", erroresTotales);
             formData.append("entry.934609722", document.getElementById('val-tiempo').innerText);
