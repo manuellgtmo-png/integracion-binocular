@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica PRO v4</title>
+    <title>Binocular PRO v5</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,18 +13,7 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
-        /* Panel Administrativo */
-        #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: fixed; top: 0; width: 100%; box-sizing: border-box; }
-        .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 95%; max-width: 450px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
-        
-        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; transition: 0.2s; }
-        .btn-next { background: #00ff88; color: #003311; box-shadow: 0 8px 0 #009955; font-size: 1.5rem; animation: pulse 1.5s infinite; }
-        
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
+        /* Header y Stats */
         .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
         .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
         
@@ -33,10 +22,13 @@
         #lado-rojo { background: var(--rojo-fondo); }
         #lado-verde { background: var(--verde-fondo); }
         
-        .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
         #indicador { position: absolute; top: 125px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 6px 25px; border-radius: 50px; font-weight: 900; z-index: 1000; border: 3px solid var(--accent-pink); }
         
-        input { width: 100%; padding: 15px; border-radius: 15px; border: 3px solid #eee; margin-top: 10px; text-align: center; font-weight: bold; box-sizing: border-box; font-size: 1rem; }
+        .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; }
+        .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); }
+        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; }
+        
         #flash { position: fixed; inset: 0; background: rgba(255, 46, 99, 0.4); pointer-events: none; opacity: 0; z-index: 4000; }
         @keyframes errorFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
     </style>
@@ -45,34 +37,27 @@
 
 <div id="flash"></div>
 
-<div id="admin-bar">
-    <span>MODO PROFESIONAL: INTEGRACIÓN BINOCULAR</span>
-    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 VER EXCEL</button>
-</div>
-
 <div id="screen-start" class="overlay">
     <div class="card">
-        <button style="position:absolute; top:20px; right:20px; background:none; border:none; cursor:pointer; opacity:0.3;" onclick="activarAdmin()">⚙️</button>
-        <h1 style="color:var(--accent-pink); margin:0;">BIENVENIDO</h1>
-        <input type="text" id="paciente" placeholder="Nombre del Paciente">
-        <input type="text" id="profesional" placeholder="Profesional a cargo">
-        <button class="btn" onclick="startGame()">EMPEZAR</button>
+        <h2 id="welcome-msg" style="color:var(--bg-dark)">Cargando...</h2>
+        <p style="color:#666">¿Listo para comenzar la sesión?</p>
+        <button class="btn" onclick="startGame()">INICIAR INTEGRACIÓN</button>
     </div>
 </div>
 
 <div id="screen-next" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:#009955; margin:0;">¡NIVEL SUPERADO!</h1>
+        <h1 style="color:#009955">¡NIVEL SUPERADO!</h1>
         <p id="msg-recompensa" style="color:var(--accent-blue); font-weight:bold;"></p>
-        <button class="btn btn-next" onclick="iniciarNivel()">SIGUIENTE NIVEL ➔</button>
+        <button class="btn" onclick="iniciarNivel()" style="background:#00ff88; color:#003311; box-shadow: 0 8px 0 #009955;">SIGUIENTE ➔</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando con Drive...</div>
-        <button class="btn" onclick="location.reload()">NUEVA SESIÓN</button>
+        <h1 style="color:var(--accent-pink)">FIN DE SESIÓN</h1>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando datos...</div>
+        <button class="btn" onclick="window.location.href='index.html'">VOLVER AL MENÚ</button>
     </div>
 </div>
 
@@ -91,8 +76,13 @@
 </div>
 
 <script>
-    let nivel = 1, totalAciertos = 0, vidas = 3, fallos = 0;
-    let rachaNiveles = 0, jugando = false, sessionStartTime, objActual = "";
+    // Recuperar datos del menú principal
+    const paciente = localStorage.getItem('paciente') || "Paciente Anónimo";
+    const profesional = localStorage.getItem('profesional') || "No asignado";
+    document.getElementById('welcome-msg').innerText = "Hola, " + paciente;
+
+    let nivel = 1, totalAciertos = 0, vidas = 3, fallos = 0, rachaNiveles = 0;
+    let jugando = false, sessionStartTime, objActual = "";
     let elementos = [];
     const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
 
@@ -108,12 +98,7 @@
         osc.start(); osc.stop(audioCtx.currentTime + 0.1);
     }
 
-    function activarAdmin() {
-        if(prompt("Clave:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
-    }
-
     function startGame() {
-        if(!document.getElementById('paciente').value) return alert("Ingresa el nombre.");
         document.getElementById('screen-start').style.display = 'none';
         sessionStartTime = Date.now();
         iniciarNivel();
@@ -121,7 +106,6 @@
 
     function iniciarNivel() {
         document.getElementById('screen-next').style.display = 'none';
-        document.getElementById('msg-recompensa').innerText = "";
         jugando = true;
         document.getElementById('txt-vidas').innerText = vidas;
         document.getElementById('txt-nivel').innerText = nivel;
@@ -135,10 +119,8 @@
         document.getElementById('lado-rojo').innerHTML = "";
         document.getElementById('lado-verde').innerHTML = "";
         elementos = [];
-        // Dificultad aumentada: más distractores
         const cantObj = 2 + Math.floor(nivel/2);
         const cantDist = 6 + (nivel * 3);
-        
         for(let i=0; i<cantObj; i++) { crear(true, 'rojo'); crear(true, 'verde'); }
         for(let i=0; i<cantDist; i++) { crear(false, 'rojo'); crear(false, 'verde'); }
     }
@@ -146,16 +128,20 @@
     function crear(esObj, lado) {
         const div = document.createElement('div');
         div.className = "figura";
-        div.innerText = esObj ? objActual : formas.filter(f => f !== objActual)[Math.floor(Math.random()*formas.length)];
         
-        // El tamaño disminuye más agresivamente
+        // CORRECCIÓN "UNDEFINED": Asegurar que siempre elija una forma válida
+        if (esObj) {
+            div.innerText = objActual;
+        } else {
+            const distractores = formas.filter(f => f !== objActual);
+            div.innerText = distractores[Math.floor(Math.random() * distractores.length)];
+        }
+        
         const baseSize = Math.max(20, 100 - (nivel * 5));
         const size = baseSize * (Math.random() * 0.4 + 0.8);
-        
         div.style.fontSize = size + 'px';
         div.style.color = lado === 'rojo' ? 'var(--rojo-figura)' : 'var(--verde-figura)';
         
-        // Velocidad aumentada (multiplicador 0.4 por nivel)
         const speedMult = 1.3 + (nivel * 0.4);
         const el = { 
             dom: div, 
@@ -196,8 +182,7 @@
 
     function failClick() {
         if(!jugando) return;
-        vidas--; fallos++;
-        rachaNiveles = 0;
+        vidas--; fallos++; rachaNiveles = 0;
         document.getElementById('flash').style.animation = "none"; document.getElementById('flash').offsetHeight; 
         document.getElementById('flash').style.animation = "errorFlash 0.4s";
         document.getElementById('txt-vidas').innerText = vidas;
@@ -209,27 +194,19 @@
     }
 
     function passLevel() { 
-        jugando = false; 
-        nivel++;
-        rachaNiveles++;
-        if(rachaNiveles >= 10) {
-            vidas++;
-            rachaNiveles = 0;
-            document.getElementById('msg-recompensa').innerText = "¡RACHA DE 10! +1 VIDA EXTRA 💖";
-        }
+        jugando = false; nivel++; rachaNiveles++;
+        if(rachaNiveles >= 10) { vidas++; rachaNiveles = 0; document.getElementById('msg-recompensa').innerText = "¡RACHA DE 10! +1 VIDA EXTRA 💖"; }
         document.getElementById('screen-next').style.display = 'flex'; 
     }
 
     function enviarDatosFinales() {
         const formAction = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const form = document.createElement("form");
-        form.method = "POST";
-        form.action = formAction;
-        form.target = "hidden_iframe";
+        form.method = "POST"; form.action = formAction; form.target = "hidden_iframe";
 
         const datos = {
-            "entry.369874016": document.getElementById('paciente').value,
-            "entry.1353470174": "Binocular (Prof: " + document.getElementById('profesional').value + ")",
+            "entry.369874016": paciente,
+            "entry.1353470174": "Integración Binocular (Prof: " + profesional + ")",
             "entry.721051298": nivel,
             "entry.873272199": totalAciertos,
             "entry.1030094511": fallos,
@@ -239,23 +216,15 @@
 
         for (let key in datos) {
             const input = document.createElement("input");
-            input.type = "hidden";
-            input.name = key;
-            input.value = datos[key];
+            input.type = "hidden"; input.name = key; input.value = datos[key];
             form.appendChild(input);
         }
 
         const iframe = document.createElement("iframe");
-        iframe.name = "hidden_iframe";
-        iframe.style.display = "none";
-        document.body.appendChild(iframe);
-        document.body.appendChild(form);
-
+        iframe.name = "hidden_iframe"; iframe.style.display = "none";
+        document.body.appendChild(iframe); document.body.appendChild(form);
         form.submit();
-        
-        setTimeout(() => {
-            document.getElementById('status-envio').innerText = "✅ REPORTE ENVIADO AL EXCEL";
-        }, 2000);
+        setTimeout(() => { document.getElementById('status-envio').innerText = "✅ REPORTE EN TU DRIVE"; }, 2000);
     }
 </script>
 </body>
