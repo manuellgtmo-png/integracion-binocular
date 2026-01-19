@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v7 - Automático</title>
+    <title>Integración Binocular Clínica v8 - Final</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,6 +13,7 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
+        /* Barra Profesional */
         #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: relative; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
@@ -61,11 +62,12 @@
 
 <div id="screen-skills" class="overlay" style="display:none">
     <div class="card" style="background:#16213e; color:white;">
-        <h2 style="color:var(--accent-blue);">✨ Misión de Hoy:</h2>
-        <div style="text-align:left; margin: 20px 0; font-size: 0.9rem;">
-            <p>🚀 <b>Súper Reacción:</b> ¡Toca rápido!</p>
-            <p>🎯 <b>Puntería Láser:</b> No falles la letra.</p>
-            <p>👁️ <b>Fusión Total:</b> Usa tus dos ojos.</p>
+        <h2 style="color:var(--accent-blue);">✨ Habilidades a trabajar:</h2>
+        <div style="text-align:left; margin: 20px 0; font-size: 0.9rem; line-height: 1.6;">
+            <p>👁️ <b>Antisupresión:</b> Estimula el ojo vago.</p>
+            <p>🎯 <b>Fusión Plana:</b> Integra ambas imágenes.</p>
+            <p>🚀 <b>Coordinación:</b> Ojo-mano en tiempo real.</p>
+            <p>🧠 <b>Atención:</b> Selección visual dinámica.</p>
         </div>
         <button class="btn" onclick="startGame()">¡EMPEZAR JUEGO!</button>
     </div>
@@ -82,9 +84,9 @@
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
         <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Enviando resultados automáticamente...</div>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Guardando resultados...</div>
         <p id="resumen-final" style="font-size:0.9rem; color:#636e72;"></p>
-        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="location.reload()">VOLVER AL INICIO</button>
+        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="enviarYReiniciar()">VOLVER AL INICIO</button>
     </div>
 </div>
 
@@ -186,9 +188,9 @@
         document.getElementById('txt-vidas').innerText = vidas;
         if(vidas <= 0) { 
             jugando = false;
-            document.getElementById('resumen-final').innerText = `Paciente: ${document.getElementById('paciente').value} - Nivel: ${nivel}`;
+            document.getElementById('resumen-final').innerText = `Paciente: ${document.getElementById('paciente').value} - Nivel Alcanzado: ${nivel}`;
             document.getElementById('screen-end').style.display = 'flex';
-            enviarAutomatico();
+            enviarDatos(); // Intento automático 1
         }
     }
 
@@ -198,7 +200,7 @@
         document.getElementById('screen-next').style.display = 'flex'; 
     }
 
-    function enviarAutomatico() {
+    function enviarDatos() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const fd = new FormData();
         fd.append("entry.369874016", document.getElementById('paciente').value);
@@ -209,17 +211,23 @@
         fd.append("entry.1303309812", document.getElementById('txt-timer').innerText);
         fd.append("entry.845098414", new Date().toISOString().split('T')[0]);
 
+        // Usamos sendBeacon para asegurar que el navegador envíe los datos incluso si se cierra la pestaña
+        navigator.sendBeacon(url, fd);
+        
+        // También fetch como refuerzo
         fetch(url, { method: "POST", mode: "no-cors", body: fd })
         .then(() => {
-            document.getElementById('status-envio').innerHTML = "✅ Resultados guardados en el Excel.";
-        })
-        .catch(() => {
-            document.getElementById('status-envio').innerHTML = "❌ Error al guardar. Avisa al profesional.";
-            document.getElementById('status-envio').style.color = "red";
+            document.getElementById('status-envio').innerHTML = "✅ Resultados sincronizados con el Excel.";
         });
+    }
+
+    function enviarYReiniciar() {
+        enviarDatos(); // Intento de respaldo antes de recargar
+        setTimeout(() => { location.reload(); }, 500);
     }
 </script>
 </body>
 </html>
+
 
 
