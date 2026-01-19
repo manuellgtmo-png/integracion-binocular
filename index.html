@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cazador Binocular Pro - Niveles</title>
+    <title>Cazador Binocular Pro - Dinámico</title>
     <style>
         :root {
             --bg-vivido: #0f172a;
@@ -17,14 +17,13 @@
             background: rgba(15, 23, 42, 0.9); padding: 10px; text-align: center; 
             border-bottom: 2px solid var(--accent); position: relative; z-index: 10;
         }
-        #objetivo-texto { font-size: 1.4rem; font-weight: bold; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
+        #objetivo-texto { font-size: 1.6rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
         
-        .stats { display: flex; justify-content: space-around; font-size: 0.85rem; color: #cbd5e1; }
-        .stats b { color: white; }
+        .stats { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 5px; color: #cbd5e1; }
 
         #game-canvas { position: relative; width: 100vw; height: 100vh; }
 
-        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; }
+        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; }
 
         /* Figuras */
         .shape { pointer-events: none; }
@@ -41,12 +40,13 @@
         .box-green .shape:not(.triangle) { background: var(--verde-figura); }
         .box-green .triangle { border-bottom-color: var(--verde-figura); }
 
-        /* Pantalla de Nivel */
-        #level-screen {
-            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9);
+        /* Pantalla de Transición */
+        #next-level-btn {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95);
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 2000; font-size: 3rem; color: var(--accent); font-weight: bold;
+            z-index: 2000;
         }
+        .btn-grande { background: var(--accent); color: #0f172a; padding: 20px 40px; border-radius: 15px; font-size: 2rem; font-weight: bold; cursor: pointer; border: none; }
 
         @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
         .exploding { animation: explode 0.3s forwards; }
@@ -54,15 +54,17 @@
 </head>
 <body>
 
-    <div id="level-screen">¡SIGUIENTE NIVEL!</div>
+    <div id="next-level-btn">
+        <h1 style="color:white">¡Nivel Completado!</h1>
+        <button class="btn-grande" onclick="prepararNivel()">Siguiente Nivel</button>
+    </div>
 
     <div class="header-instruccion">
-        <div id="objetivo-texto">Cargando...</div>
+        <div id="objetivo-texto">Atrapa todos los Círculos</div>
         <div class="stats">
-            <span>Nivel: <b id="val-nivel">1</b></span>
-            <span>Meta: <b id="val-meta">10</b></span>
-            <span>Tiempo: <b id="val-tiempo">00:00</b></span>
-            <span>Aciertos: <b id="val-hits">0</b></span>
+            <span>Nivel: <b id="val-nivel" style="color:white">1</b></span>
+            <span>Quedan: <b id="val-quedan" style="color:var(--accent)">0</b></span>
+            <span>Tiempo: <b id="val-tiempo" style="color:white">00:00</b></span>
         </div>
     </div>
 
@@ -72,12 +74,12 @@
         const canvas = document.getElementById('game-canvas');
         const tipos = ['círculo', 'cuadrado', 'triángulo', 'rombo'];
         let objetivoActual = "";
-        let aciertosTotales = 0, aciertosNivel = 0, errores = 0, nivel = 1;
-        let figuras = [], metaNivel = 10, velocidadBase = 2.5;
-        let segundos = 0, cronometro;
+        let figuras = [], nivel = 1, segundos = 0;
+        let figurasObjetivoRestantes = 0;
+        let velocidadBase = 2;
 
         function iniciarCronometro() {
-            cronometro = setInterval(() => {
+            setInterval(() => {
                 segundos++;
                 let min = Math.floor(segundos / 60).toString().padStart(2, '0');
                 let seg = (segundos % 60).toString().padStart(2, '0');
@@ -85,52 +87,53 @@
             }, 1000);
         }
 
-        function cambiarObjetivo() {
+        function prepararNivel() {
+            document.getElementById('next-level-btn').style.display = 'none';
+            canvas.innerHTML = "";
+            figuras = [];
+            
+            // Cantidad aleatoria entre 12 y 30
+            const cantidadTotal = Math.floor(Math.random() * (30 - 12 + 1)) + 12;
             objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
-            aciertosNivel = 0;
-            document.getElementById('val-meta').innerText = metaNivel;
-            document.getElementById('objetivo-texto').innerText = `Atrapa ${metaNivel} ${objetivoActual}s`;
-        }
+            
+            // Aumentar dificultad
+            velocidadBase += 0.5;
+            document.getElementById('val-nivel').innerText = nivel;
+            document.getElementById('objetivo-texto').innerText = `Atrapa todos los: ${objetivoActual}s`;
 
-        function subirNivel() {
-            nivel++;
-            metaNivel += 2; // Cada nivel pide 2 figuras más
-            velocidadBase += 0.8; // Aumenta la velocidad
-            
-            const screen = document.getElementById('level-screen');
-            screen.style.display = 'flex';
-            
-            setTimeout(() => {
-                screen.style.display = 'none';
-                document.getElementById('val-nivel').innerText = nivel;
-                cambiarObjetivo();
-                // Añadimos una figura extra al canvas cada nivel para más dificultad
+            // Crear figuras
+            for(let i=0; i < cantidadTotal; i++) {
                 figuras.push(new Figura());
-            }, 1500);
+            }
+
+            // Contar cuántos del objetivo hay en esta tanda
+            figurasObjetivoRestantes = figuras.filter(f => f.tipo === objetivoActual).length;
+            
+            // Caso raro: si no salió ninguno del objetivo, reintentar preparación
+            if(figurasObjetivoRestantes === 0) return prepararNivel();
+
+            document.getElementById('val-quedan').innerText = figurasObjetivoRestantes;
         }
 
         class Figura {
             constructor() {
                 this.el = document.createElement('div');
-                this.crearPropiedades();
-                this.init();
-            }
-
-            crearPropiedades() {
                 this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
                 this.esRojo = Math.random() > 0.5;
-                this.size = Math.random() > 0.7 ? 75 : 115;
+                this.size = Math.random() > 0.8 ? 70 : 110;
+                
                 this.x = Math.random() * (window.innerWidth - this.size);
                 this.y = Math.random() * (window.innerHeight - this.size - 120) + 100;
                 this.vx = (Math.random() - 0.5) * velocidadBase;
                 this.vy = (Math.random() - 0.5) * velocidadBase;
+
+                this.init();
             }
 
             init() {
                 this.el.className = `target-box ${this.esRojo ? 'box-red' : 'box-green'}`;
                 this.el.style.width = this.size + 'px';
                 this.el.style.height = this.size + 'px';
-                this.el.innerHTML = "";
                 
                 const shape = document.createElement('div');
                 if(this.tipo === 'círculo') shape.className = "shape circle";
@@ -144,8 +147,7 @@
             }
 
             actualizar() {
-                this.x += this.vx;
-                this.y += this.vy;
+                this.x += this.vx; this.y += this.vy;
                 if (this.x <= 0 || this.x >= window.innerWidth - this.size) this.vx *= -1;
                 if (this.y <= 100 || this.y >= window.innerHeight - this.size) this.vy *= -1;
                 this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
@@ -153,30 +155,28 @@
 
             verificar() {
                 if (this.tipo === objetivoActual) {
-                    aciertosTotales++;
-                    aciertosNivel++;
-                    document.getElementById('val-hits').innerText = aciertosTotales;
-                    document.getElementById('val-meta').innerText = metaNivel - aciertosNivel;
-                    
+                    figurasObjetivoRestantes--;
+                    document.getElementById('val-quedan').innerText = figurasObjetivoRestantes;
                     this.el.classList.add('exploding');
+                    
                     setTimeout(() => {
-                        this.el.classList.remove('exploding');
-                        this.crearPropiedades();
-                        this.init();
-                        if (aciertosNivel >= metaNivel) subirNivel();
+                        if(this.el.parentNode) canvas.removeChild(this.el);
+                        // Borrar de la lista de animación
+                        figuras = figuras.filter(f => f !== this);
+                        
+                        if(figurasObjetivoRestantes <= 0) {
+                            nivel++;
+                            document.getElementById('next-level-btn').style.display = 'flex';
+                        }
                     }, 300);
                 } else {
-                    errores++;
-                    this.el.style.boxShadow = "0 0 25px #ef4444";
+                    this.el.style.boxShadow = "0 0 20px #ef4444";
                     setTimeout(() => this.el.style.boxShadow = "none", 300);
                 }
             }
         }
 
-        // Iniciar juego con 12 figuras
-        for(let i=0; i<12; i++) figuras.push(new Figura());
-        
-        cambiarObjetivo();
+        prepararNivel();
         iniciarCronometro();
 
         function animar() {
