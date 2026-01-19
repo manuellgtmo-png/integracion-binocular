@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v5</title>
+    <title>Integración Binocular Clínica v7 - Automático</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,17 +13,16 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
-        /* Barra Profesional Independiente */
         #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 10px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.9rem; z-index: 3000; position: relative; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
         .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
-        .card-dark { background: #16213e; color: white; border: 2px solid var(--accent-blue); }
-
-        .btn-gear { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; font-size: 1.4rem; opacity: 0.4; transition: 0.3s; }
-        .btn-gear:hover { opacity: 1; transform: rotate(90deg); }
-        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; }
+        
+        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; transition: 0.2s; }
+        .btn-next { background: #00ff88; color: #003311; box-shadow: 0 8px 0 #009955; font-size: 1.5rem; animation: pulse 1.5s infinite; margin-top: 25px; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
         .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
         .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
@@ -47,35 +46,21 @@
 
 <div id="admin-bar">
     <span>MODO PROFESIONAL ACTIVO</span>
-    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 BUSCAR PACIENTE / REPORTES</button>
+    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 BUSCAR PACIENTE / EXCEL</button>
 </div>
 
 <div id="screen-start" class="overlay">
     <div class="card">
-        <button class="btn-gear" onclick="unlockAdmin()">⚙️</button>
-        <h1 style="color:var(--accent-pink); margin:0; font-size: 2rem;">BIENVENIDO</h1>
-        <p style="color: #636e72; font-size: 0.8rem; margin-bottom: 15px;">Ingresa los datos para comenzar</p>
+        <button style="position:absolute; top:20px; right:20px; background:none; border:none; cursor:pointer; opacity:0.3;" onclick="unlockAdmin()">⚙️</button>
+        <h1 style="color:var(--accent-pink); margin:0;">BIENVENIDO</h1>
         <input type="text" id="paciente" placeholder="Nombre del Paciente">
         <input type="text" id="profesional" placeholder="Profesional a cargo">
         <button class="btn" onclick="showIntro()">SIGUIENTE</button>
     </div>
 </div>
 
-<div id="screen-intro" class="overlay" style="display:none">
-    <div class="card">
-        <h2 style="color:var(--accent-pink);">Instrucciones</h2>
-        <ul style="text-align:left; color:#2d3436; line-height:1.6; font-size: 0.9rem;">
-            <li>1. Usa tus gafas (Rojo/Verde).</li>
-            <li>2. Toca <b>solo</b> la letra indicada arriba.</li>
-            <li>3. Si tocas el fondo o una letra errónea, pierdes 1 vida.</li>
-            <li>4. ¡Tienes 2 vidas por nivel!</li>
-        </ul>
-        <button class="btn" onclick="showSkills()">ENTENDIDO</button>
-    </div>
-</div>
-
 <div id="screen-skills" class="overlay" style="display:none">
-    <div class="card card-dark">
+    <div class="card" style="background:#16213e; color:white;">
         <h2 style="color:var(--accent-blue);">✨ Misión de Hoy:</h2>
         <div style="text-align:left; margin: 20px 0; font-size: 0.9rem;">
             <p>🚀 <b>Súper Reacción:</b> ¡Toca rápido!</p>
@@ -83,6 +68,23 @@
             <p>👁️ <b>Fusión Total:</b> Usa tus dos ojos.</p>
         </div>
         <button class="btn" onclick="startGame()">¡EMPEZAR JUEGO!</button>
+    </div>
+</div>
+
+<div id="screen-next" class="overlay" style="display:none">
+    <div class="card">
+        <h1 style="color:#009955; margin:0;">¡NIVEL SUPERADO!</h1>
+        <p>Tu visión binocular está mejorando.</p>
+        <button class="btn btn-next" onclick="iniciarNivel()">SIGUIENTE NIVEL ➔</button>
+    </div>
+</div>
+
+<div id="screen-end" class="overlay" style="display:none">
+    <div class="card">
+        <h1 style="color:var(--accent-pink); margin:0;">SESIÓN TERMINADA</h1>
+        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Enviando resultados automáticamente...</div>
+        <p id="resumen-final" style="font-size:0.9rem; color:#636e72;"></p>
+        <button class="btn" style="background:#636e72; box-shadow:0 8px 0 #2d3436;" onclick="location.reload()">VOLVER AL INICIO</button>
     </div>
 </div>
 
@@ -106,24 +108,13 @@
     let elementos = [];
     const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
 
-    // Función para activar el panel sin jugar
     function unlockAdmin() {
-        const pass = prompt("Clave de Profesional:");
-        if(pass === "1234") {
-            document.getElementById('admin-bar').style.display = 'flex';
-        } else {
-            alert("Clave incorrecta");
-        }
+        if(prompt("Clave:") === "1234") document.getElementById('admin-bar').style.display = 'flex';
     }
 
     function showIntro() {
-        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Por favor completa los nombres.");
+        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Completa los datos.");
         document.getElementById('screen-start').style.display = 'none';
-        document.getElementById('screen-intro').style.display = 'flex';
-    }
-
-    function showSkills() {
-        document.getElementById('screen-intro').style.display = 'none';
         document.getElementById('screen-skills').style.display = 'flex';
     }
 
@@ -134,6 +125,7 @@
     }
 
     function iniciarNivel() {
+        document.getElementById('screen-next').style.display = 'none';
         jugando = true; vidas = 2;
         document.getElementById('txt-vidas').innerText = vidas;
         document.getElementById('txt-nivel').innerText = nivel;
@@ -193,29 +185,38 @@
         document.getElementById('flash').style.animation = "errorFlash 0.4s";
         document.getElementById('txt-vidas').innerText = vidas;
         if(vidas <= 0) { 
-            finalizarYEnviar(); 
-            alert("Sesión terminada. Reporte enviado al sistema."); 
-            location.reload(); 
+            jugando = false;
+            document.getElementById('resumen-final').innerText = `Paciente: ${document.getElementById('paciente').value} - Nivel: ${nivel}`;
+            document.getElementById('screen-end').style.display = 'flex';
+            enviarAutomatico();
         }
     }
 
-    function passLevel() { jugando = false; nivel++; alert("¡Nivel " + nivel + " completado!"); iniciarNivel(); }
+    function passLevel() { 
+        jugando = false; 
+        nivel++; 
+        document.getElementById('screen-next').style.display = 'flex'; 
+    }
 
-    function finalizarYEnviar() {
-        jugando = false;
+    function enviarAutomatico() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
-        
         const fd = new FormData();
-        // IDs extraídos de tu nuevo enlace de formulario
         fd.append("entry.369874016", document.getElementById('paciente').value);
-        fd.append("entry.1353470174", "Integración Binocular (Prof: " + document.getElementById('profesional').value + ")");
+        fd.append("entry.1353470174", "Fusión Clínica (Prof: " + document.getElementById('profesional').value + ")");
         fd.append("entry.721051298", nivel);
         fd.append("entry.873272199", totalAciertos);
         fd.append("entry.1030094511", fallos);
         fd.append("entry.1303309812", document.getElementById('txt-timer').innerText);
         fd.append("entry.845098414", new Date().toISOString().split('T')[0]);
 
-        fetch(url, { method: "POST", mode: "no-cors", body: fd });
+        fetch(url, { method: "POST", mode: "no-cors", body: fd })
+        .then(() => {
+            document.getElementById('status-envio').innerHTML = "✅ Resultados guardados en el Excel.";
+        })
+        .catch(() => {
+            document.getElementById('status-envio').innerHTML = "❌ Error al guardar. Avisa al profesional.";
+            document.getElementById('status-envio').style.color = "red";
+        });
     }
 </script>
 </body>
