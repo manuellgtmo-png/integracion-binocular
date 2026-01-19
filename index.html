@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cazador Binocular Pro - Movimiento</title>
+    <title>Cazador Binocular Pro - Niveles</title>
     <style>
         :root {
             --bg-vivido: #0f172a;
@@ -13,58 +13,56 @@
         }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; touch-action: none; }
         
-        /* Interfaz */
         .header-instruccion { 
-            background: rgba(15, 23, 42, 0.9); padding: 15px; text-align: center; 
+            background: rgba(15, 23, 42, 0.9); padding: 10px; text-align: center; 
             border-bottom: 2px solid var(--accent); position: relative; z-index: 10;
         }
-        #objetivo-texto { font-size: 1.5rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
+        #objetivo-texto { font-size: 1.4rem; font-weight: bold; color: var(--accent); text-transform: uppercase; margin-bottom: 5px; }
         
-        .stats { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 5px; }
+        .stats { display: flex; justify-content: space-around; font-size: 0.85rem; color: #cbd5e1; }
+        .stats b { color: white; }
 
         #game-canvas { position: relative; width: 100vw; height: 100vh; }
 
-        /* Contenedor de la figura (el que tiene el color de fondo para filtrar) */
-        .target-box {
-            position: absolute; display: flex; align-items: center; justify-content: center;
-            border-radius: 10px; cursor: pointer; user-select: none;
-        }
+        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; }
 
-        /* Figuras Geométricas */
+        /* Figuras */
         .shape { pointer-events: none; }
         .circle { border-radius: 50%; width: 60%; height: 60%; }
         .square { width: 60%; height: 60%; }
-        .triangle { 
-            width: 0; height: 0; 
-            border-left: 25px solid transparent; border-right: 25px solid transparent;
-            border-bottom: 50px solid;
-        }
-        .rombo {
-            width: 40px; height: 40px;
-            transform: rotate(45deg);
-        }
+        .triangle { width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-bottom: 50px solid; }
+        .rombo { width: 40px; height: 40px; transform: rotate(45deg); }
 
-        /* Colores según Filtro */
+        /* Colores */
         .box-red { background: var(--rojo-fondo); }
         .box-red .shape:not(.triangle) { background: var(--rojo-figura); }
         .box-red .triangle { border-bottom-color: var(--rojo-figura); }
-
         .box-green { background: var(--verde-fondo); }
         .box-green .shape:not(.triangle) { background: var(--verde-figura); }
         .box-green .triangle { border-bottom-color: var(--verde-figura); }
 
-        /* Animaciones */
+        /* Pantalla de Nivel */
+        #level-screen {
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 2000; font-size: 3rem; color: var(--accent); font-weight: bold;
+        }
+
         @keyframes explode { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.8); opacity: 0; } }
         .exploding { animation: explode 0.3s forwards; }
     </style>
 </head>
 <body>
 
+    <div id="level-screen">¡SIGUIENTE NIVEL!</div>
+
     <div class="header-instruccion">
         <div id="objetivo-texto">Cargando...</div>
         <div class="stats">
-            <span>Aciertos: <span id="hits">0</span></span>
-            <span>Errores: <span id="misses">0</span></span>
+            <span>Nivel: <b id="val-nivel">1</b></span>
+            <span>Meta: <b id="val-meta">10</b></span>
+            <span>Tiempo: <b id="val-tiempo">00:00</b></span>
+            <span>Aciertos: <b id="val-hits">0</b></span>
         </div>
     </div>
 
@@ -74,33 +72,65 @@
         const canvas = document.getElementById('game-canvas');
         const tipos = ['círculo', 'cuadrado', 'triángulo', 'rombo'];
         let objetivoActual = "";
-        let aciertos = 0, errores = 0;
-        let figuras = [];
+        let aciertosTotales = 0, aciertosNivel = 0, errores = 0, nivel = 1;
+        let figuras = [], metaNivel = 10, velocidadBase = 2.5;
+        let segundos = 0, cronometro;
+
+        function iniciarCronometro() {
+            cronometro = setInterval(() => {
+                segundos++;
+                let min = Math.floor(segundos / 60).toString().padStart(2, '0');
+                let seg = (segundos % 60).toString().padStart(2, '0');
+                document.getElementById('val-tiempo').innerText = `${min}:${seg}`;
+            }, 1000);
+        }
 
         function cambiarObjetivo() {
             objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
-            document.getElementById('objetivo-texto').innerText = `Busca y toca: ${objetivoActual}s`;
+            aciertosNivel = 0;
+            document.getElementById('val-meta').innerText = metaNivel;
+            document.getElementById('objetivo-texto').innerText = `Atrapa ${metaNivel} ${objetivoActual}s`;
+        }
+
+        function subirNivel() {
+            nivel++;
+            metaNivel += 2; // Cada nivel pide 2 figuras más
+            velocidadBase += 0.8; // Aumenta la velocidad
+            
+            const screen = document.getElementById('level-screen');
+            screen.style.display = 'flex';
+            
+            setTimeout(() => {
+                screen.style.display = 'none';
+                document.getElementById('val-nivel').innerText = nivel;
+                cambiarObjetivo();
+                // Añadimos una figura extra al canvas cada nivel para más dificultad
+                figuras.push(new Figura());
+            }, 1500);
         }
 
         class Figura {
             constructor() {
                 this.el = document.createElement('div');
+                this.crearPropiedades();
+                this.init();
+            }
+
+            crearPropiedades() {
                 this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
                 this.esRojo = Math.random() > 0.5;
-                this.size = Math.random() > 0.7 ? 70 : 110; // Mezcla de grandes y pequeñas
-                
+                this.size = Math.random() > 0.7 ? 75 : 115;
                 this.x = Math.random() * (window.innerWidth - this.size);
-                this.y = Math.random() * (window.innerHeight - this.size - 100) + 80;
-                this.vx = (Math.random() - 0.5) * 4; // Velocidad X
-                this.vy = (Math.random() - 0.5) * 4; // Velocidad Y
-
-                this.init();
+                this.y = Math.random() * (window.innerHeight - this.size - 120) + 100;
+                this.vx = (Math.random() - 0.5) * velocidadBase;
+                this.vy = (Math.random() - 0.5) * velocidadBase;
             }
 
             init() {
                 this.el.className = `target-box ${this.esRojo ? 'box-red' : 'box-green'}`;
                 this.el.style.width = this.size + 'px';
                 this.el.style.height = this.size + 'px';
+                this.el.innerHTML = "";
                 
                 const shape = document.createElement('div');
                 if(this.tipo === 'círculo') shape.className = "shape circle";
@@ -109,53 +139,45 @@
                 else if(this.tipo === 'rombo') shape.className = "shape rombo";
                 
                 this.el.appendChild(shape);
-                this.el.onpointerdown = () => this.verificar();
+                this.el.onpointerdown = (e) => { e.preventDefault(); this.verificar(); };
                 canvas.appendChild(this.el);
             }
 
             actualizar() {
                 this.x += this.vx;
                 this.y += this.vy;
-
-                // Rebotar en bordes
                 if (this.x <= 0 || this.x >= window.innerWidth - this.size) this.vx *= -1;
-                if (this.y <= 80 || this.y >= window.innerHeight - this.size) this.vy *= -1;
-
+                if (this.y <= 100 || this.y >= window.innerHeight - this.size) this.vy *= -1;
                 this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
             }
 
             verificar() {
                 if (this.tipo === objetivoActual) {
-                    aciertos++;
+                    aciertosTotales++;
+                    aciertosNivel++;
+                    document.getElementById('val-hits').innerText = aciertosTotales;
+                    document.getElementById('val-meta').innerText = metaNivel - aciertosNivel;
+                    
                     this.el.classList.add('exploding');
-                    setTimeout(() => this.reaparecer(), 300);
+                    setTimeout(() => {
+                        this.el.classList.remove('exploding');
+                        this.crearPropiedades();
+                        this.init();
+                        if (aciertosNivel >= metaNivel) subirNivel();
+                    }, 300);
                 } else {
                     errores++;
-                    this.el.style.boxShadow = "0 0 20px red";
+                    this.el.style.boxShadow = "0 0 25px #ef4444";
                     setTimeout(() => this.el.style.boxShadow = "none", 300);
                 }
-                document.getElementById('hits').innerText = aciertos;
-                document.getElementById('misses').innerText = errores;
-                
-                if(aciertos % 5 === 0) cambiarObjetivo();
-            }
-
-            reaparecer() {
-                this.x = Math.random() * (window.innerWidth - this.size);
-                this.y = Math.random() * (window.innerHeight - this.size - 100) + 80;
-                this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
-                this.el.innerHTML = "";
-                this.init();
-                this.el.classList.remove('exploding');
             }
         }
 
-        // Crear 15 figuras iniciales
-        for(let i=0; i<15; i++) {
-            figuras.push(new Figura());
-        }
-
+        // Iniciar juego con 12 figuras
+        for(let i=0; i<12; i++) figuras.push(new Figura());
+        
         cambiarObjetivo();
+        iniciarCronometro();
 
         function animar() {
             figuras.forEach(f => f.actualizar());
@@ -165,4 +187,3 @@
     </script>
 </body>
 </html>
-
