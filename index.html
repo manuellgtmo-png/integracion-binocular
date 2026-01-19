@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terapia Visual - Integración Binocular</title>
+    <style>
+        :root {
+            --bg-neutral: #f3f4f6;
+            /* Colores que me pasaste para Rojo */
+            --rojo-fondo: #80322a;
+            --rojo-figura: #69302a;
+            /* Colores que me pasaste para Verde */
+            --verde-fondo: #69913d;
+            --verde-figura: #6c7b5a;
+        }
+        body { margin: 0; font-family: sans-serif; background: var(--bg-neutral); overflow: hidden; text-align: center; }
+        .stats { background: #1e293b; color: white; padding: 10px; display: flex; justify-content: space-around; }
+        
+        #game-canvas { position: relative; width: 100vw; height: 85vh; cursor: crosshair; }
+
+        .target-box {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            transition: transform 0.1s;
+        }
+
+        /* Estilos de figuras geométricas */
+        .shape { width: 60px; height: 60px; }
+        .circle { border-radius: 50%; }
+        .square { width: 60px; height: 60px; }
+        .triangle { 
+            width: 0; height: 0; 
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+        }
+
+        /* Aplicación de tus colores específicos */
+        .box-red { background-color: var(--rojo-fondo); }
+        .box-red .shape-fill { background-color: var(--rojo-figura); }
+        .box-red .triangle { border-bottom: 60px solid var(--rojo-figura); }
+
+        .box-green { background-color: var(--verde-fondo); }
+        .box-green .shape-fill { background-color: var(--verde-figura); }
+        .box-green .triangle { border-bottom: 60px solid var(--verde-figura); }
+
+    </style>
+</head>
+<body>
+
+    <div class="stats">
+        <div>Paciente: <span id="nombre-display">---</span></div>
+        <div>Aciertos: <span id="hits">0</span></div>
+        <div>Fallos: <span id="misses">0</span></div>
+    </div>
+
+    <div id="game-canvas" onclick="checkMiss(event)">
+        </div>
+
+    <script>
+        let aciertos = 0, fallos = 0;
+        let nombre = prompt("Nombre del paciente:") || "Anonimo";
+        document.getElementById('nombre-display').innerText = nombre;
+
+        function crearFigura() {
+            const canvas = document.getElementById('game-canvas');
+            const box = document.createElement('div');
+            const isRed = Math.random() > 0.5;
+            const shapeType = Math.floor(Math.random() * 3); // 0: Circulo, 1: Cuadrado, 2: Triangulo
+
+            box.className = `target-box ${isRed ? 'box-red' : 'box-green'}`;
+            
+            // Posición aleatoria
+            box.style.left = Math.random() * (window.innerWidth - 150) + "px";
+            box.style.top = Math.random() * (window.innerHeight - 250) + "px";
+
+            const shape = document.createElement('div');
+            if(shapeType === 0) shape.className = "shape circle shape-fill";
+            else if(shapeType === 1) shape.className = "shape square shape-fill";
+            else shape.className = "shape triangle";
+
+            box.appendChild(shape);
+            box.onclick = (e) => {
+                e.stopPropagation();
+                aciertos++;
+                document.getElementById('hits').innerText = aciertos;
+                canvas.removeChild(box);
+                crearFigura();
+            };
+
+            canvas.appendChild(box);
+
+            // Desaparece después de 3 segundos si no se toca
+            setTimeout(() => {
+                if(box.parentNode) {
+                    canvas.removeChild(box);
+                    fallos++;
+                    document.getElementById('misses').innerText = fallos;
+                    crearFigura();
+                }
+            }, 3000);
+        }
+
+        function checkMiss(e) {
+            // Si toca el fondo blanco cuenta como error de precisión
+        }
+
+        // Iniciar con 3 figuras en pantalla
+        crearFigura();
+        crearFigura();
+        crearFigura();
+    </script>
+</body>
+</html>
