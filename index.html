@@ -3,270 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binocular - Terapia Visual</title>
+    <title>Integración Binocular - Clínica Visual</title>
     <style>
-        :root {
-            --bg-vivido: #0f172a;
-            --rojo-fondo: #80322a; --rojo-figura: #69302a;
-            --verde-fondo: #69913d; --verde-figura: #6c7b5a;
-            --accent: #38bdf8;
+        :root { 
+            --bg: radial-gradient(circle, #1e293b 0%, #0f172a 100%); 
+            --accent: #f472b6; /* Un rosa/fucsia vibrante para binocular */
+            --card: rgba(30, 41, 59, 0.7); 
+            --error: #f43f5e; 
+            --success: #10b981; 
         }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-vivido); color: white; overflow: hidden; touch-action: none; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; }
         
-        /* Pantallas */
-        #login-screen, #instruction-screen, #admin-panel, #msg-screen { 
-            position: fixed; inset: 0; background: #0f172a; z-index: 3000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center;
+        #setup-screen, #instruction-screen, #msg-screen, #next-level-screen { 
+            position: fixed; inset: 0; background: var(--bg); z-index: 2000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; text-align: center; 
         }
-        .input-clinico { padding: 12px; font-size: 1rem; border-radius: 8px; border: 2px solid var(--accent); background: #1e293b; color: white; margin: 10px; width: 280px; }
+
+        /* Ficha de Objetivos */
+        .ficha-objetivos {
+            background: rgba(244, 114, 182, 0.1);
+            border: 2px solid rgba(244, 114, 182, 0.3);
+            border-radius: 24px;
+            padding: 25px;
+            margin: 20px 0;
+            max-width: 450px;
+            text-align: left;
+            backdrop-filter: blur(10px);
+        }
+        .obj-item { display: flex; align-items: center; margin-bottom: 18px; }
+        .obj-icon {
+            font-size: 1.8rem;
+            margin-right: 20px;
+            background: var(--card);
+            min-width: 55px; height: 55px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .obj-texto b { color: var(--accent); font-size: 1.1rem; display: block; }
+        .obj-texto span { font-size: 0.95rem; color: #cbd5e1; line-height: 1.4; }
+
+        .btn-grande { background: var(--accent); color: white; padding: 18px 45px; border-radius: 15px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; transition: 0.3s; box-shadow: 0 5px 20px rgba(244, 114, 182, 0.4); }
+        .btn-grande:hover { transform: translateY(-3px); filter: brightness(1.1); }
         
-        .header-instruccion { 
-            background: rgba(15, 23, 42, 0.95); padding: 10px; text-align: center; 
-            border-bottom: 2px solid var(--accent); position: relative; z-index: 10;
-        }
-        #objetivo-texto { font-size: 1.8rem; font-weight: bold; color: var(--accent); text-transform: uppercase; }
-        
-        #game-canvas { position: relative; width: 100vw; height: 100vh; }
+        /* Área de Juego */
+        #game-container { display: flex; gap: 50px; margin-top: 50px; position: relative; }
+        .target-box { width: 150px; height: 150px; background: var(--card); border: 3px dashed var(--accent); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 4rem; cursor: pointer; transition: 0.2s; }
+        .target-box:hover { background: rgba(244, 114, 182, 0.1); }
 
-        .target-box { position: absolute; display: flex; align-items: center; justify-content: center; border-radius: 12px; cursor: pointer; top: 0; left: 0; }
-
-        .shape { pointer-events: none; }
-        .circle { border-radius: 50%; width: 60%; height: 60%; }
-        .square { width: 60%; height: 60%; }
-        .triangle { width: 0; height: 0; border-left: 25px solid transparent; border-right: 25px solid transparent; border-bottom: 50px solid; }
-        .rombo { width: 40px; height: 40px; transform: rotate(45deg); }
-
-        .box-red { background: var(--rojo-fondo); }
-        .box-red .shape:not(.triangle) { background: var(--rojo-figura); }
-        .box-red .triangle { border-bottom-color: var(--rojo-figura); }
-        .box-green { background: var(--verde-fondo); }
-        .box-green .shape:not(.triangle) { background: var(--verde-figura); }
-        .box-green .triangle { border-bottom-color: var(--verde-figura); }
-
-        @keyframes explode { 
-            0% { transform: translate(var(--x), var(--y)) scale(1); opacity: 1; } 
-            100% { transform: translate(var(--x), var(--y)) scale(2.5); opacity: 0; } 
-        }
-        .exploding { animation: explode 0.4s ease-out forwards; pointer-events: none; }
-
-        .btn-grande { background: var(--accent); color: #0f172a; padding: 15px 35px; border-radius: 12px; font-size: 1.5rem; font-weight: bold; cursor: pointer; border: none; margin-top: 20px; }
-        .btn-admin { position: absolute; top: 10px; right: 10px; background: none; border: 1px solid white; color: white; cursor: pointer; font-size: 0.7rem; z-index: 4000; opacity: 0.5; }
-        .stats { display: flex; justify-content: space-around; font-size: 0.9rem; margin-top: 5px; color: #cbd5e1; width: 100%; }
+        .header-clinico { width: 100%; background: rgba(15, 23, 42, 0.8); padding: 15px; border-bottom: 3px solid var(--accent); display: flex; justify-content: space-around; backdrop-filter: blur(5px); }
+        .stat-val { color: var(--accent); font-size: 1.3rem; display: block; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <button class="btn-admin" onclick="abrirAdmin()">Área Profesional</button>
-
-    <div id="login-screen">
-        <h1 style="color:var(--accent)">BINOCULAR</h1>
-        <input type="text" id="nombrePaciente" class="input-clinico" placeholder="Nombre del Paciente">
-        <button class="btn-grande" onclick="mostrarInstrucciones()">Siguiente</button>
+    <div id="setup-screen">
+        <h1 style="color:var(--accent); font-size: 2.5rem; text-shadow: 0 0 20px rgba(244, 114, 182, 0.5);">INTEGRACIÓN BINOCULAR</h1>
+        <input type="text" id="nombrePaciente" style="padding:15px; border-radius:12px; border:2px solid var(--accent); background:var(--card); color:white; width:300px; font-size:1.1rem; outline:none;" placeholder="Nombre del Paciente">
+        <button class="btn-grande" onclick="mostrarInstrucciones()">Continuar</button>
     </div>
 
     <div id="instruction-screen" style="display:none">
-        <h2 style="color:var(--accent)">Instrucciones</h2>
-        <p style="max-width: 400px; line-height: 1.6;">
-            Ponte tus <b>gafas rojo-verde</b>.<br><br>
-            Toca <b>únicamente</b> las figuras que se indiquen arriba.<br><br>
-            La sesión terminará si cometes 3 errores en un mismo nivel.
-        </p>
-        <button class="btn-grande" onclick="iniciarJuego()">¡Empezar!</button>
+        <h2 style="font-size: 2.2rem;">🌟 ¡A trabajar en equipo! 🌟</h2>
+        <p style="color: #cbd5e1;">Tus ojos aprenderán a trabajar juntos hoy:</p>
+        
+        <div class="ficha-objetivos">
+            <div class="obj-item">
+                <div class="obj-icon">👓</div>
+                <div class="obj-texto">
+                    <b>Fusión Sensorial</b>
+                    <span>Entrenar al cerebro para unir dos imágenes en una sola muy clara.</span>
+                </div>
+            </div>
+            <div class="obj-item">
+                <div class="obj-icon">🏔️</div>
+                <div class="obj-texto">
+                    <b>Estereopsis</b>
+                    <span>Mejorar la capacidad de ver en 3D y calcular distancias.</span>
+                </div>
+            </div>
+            <div class="obj-item">
+                <div class="obj-icon">🚀</div>
+                <div class="obj-texto">
+                    <b>Flexibilidad Binocular</b>
+                    <span>Fortalecer el enfoque y el trabajo coordinado de ambos ojos.</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-grande" onclick="comenzarJuego()">¡Empezar Misión!</button>
+    </div>
+
+    <div id="next-level-screen" style="display:none">
+        <h2 style="color:var(--success); font-size: 2.5rem;">¡Fusión Perfecta!</h2>
+        <p id="stats-nivel" style="font-size: 1.2rem;"></p>
+        <button class="btn-grande" onclick="iniciarNivel()">Siguiente Reto ➔</button>
     </div>
 
     <div id="msg-screen" style="display:none">
-        <h1 id="msg-titulo"></h1>
-        <p id="msg-subtitulo"></p>
-        <button class="btn-msg btn-grande" onclick="prepararNivel()">Continuar</button>
+        <h1 style="color:var(--accent)">Sesión Finalizada</h1>
+        <p id="msg-subtitulo" style="font-size: 1.2rem; line-height: 1.8; white-space: pre-wrap;"></p>
+        <button class="btn-grande" onclick="location.reload()">Terminar</button>
     </div>
 
-    <div id="admin-panel" style="display:none">
-        <h3>Historial Local (Clave: 1234)</h3>
-        <table border="1" style="width:100%; border-collapse: collapse; background:#1e293b; font-size: 0.8rem;">
-            <thead><tr><th>Fecha</th><th>Paciente</th><th>Niv</th><th>Fallos</th></tr></thead>
-            <tbody id="cuerpoTabla"></tbody>
-        </table>
-        <button class="btn-grande" onclick="cerrarAdmin()" style="font-size:1rem">Cerrar</button>
+    <div class="header-clinico">
+        <div>NIVEL <span id="val-nivel" class="stat-val">1</span></div>
+        <div>ACIERTOS <span id="val-ok" class="stat-val">0</span></div>
+        <div>FALLOS <span id="val-err" style="color:var(--error)" class="stat-val">0</span></div>
+        <div>TIEMPO <span id="val-timer" class="stat-val">0.0s</span></div>
     </div>
 
-    <div class="header-instruccion">
-        <div id="objetivo-texto">...</div>
-        <div class="stats">
-            <span>Paciente: <b id="val-pac">---</b></span>
-            <span>Nivel: <b id="val-nivel">1</b></span>
-            <span>Aciertos: <b id="val-aciertos" style="color:var(--accent)">0</b></span>
-            <span>Errores: <b id="val-err-nivel" style="color:#ef4444">0/3</b></span>
-            <span>Tiempo: <b id="val-tiempo">00:00</b></span>
-        </div>
+    <div id="game-container">
+        <div class="target-box" onclick="checkTarget(true)" id="box1">👁️</div>
+        <div class="target-box" onclick="checkTarget(false)" id="box2">👁️</div>
     </div>
-
-    <div id="game-canvas"></div>
 
     <script>
-        const canvas = document.getElementById('game-canvas');
-        const tipos = ['círculo', 'cuadrado', 'triángulo', 'rombo'];
-        let objetivoActual = "", figuras = [], nivel = 1, paciente = "";
-        let figurasObjetivoRestantes = 0, erroresNivel = 0, erroresTotales = 0, aciertosTotales = 0;
-        let velocidadBase = 2.5, segundos = 0, cronometro;
+        let paciente = "", nivel = 1, aciertos = 0, fallos = 0, correctBox = 0;
+        let startTime, timerInterval, jugando = false;
+        const figuras = ["🌟", "🍎", "🚀", "💎", "🦁", "🌈", "🎈", "🍭"];
 
         function mostrarInstrucciones() {
             paciente = document.getElementById('nombrePaciente').value.trim();
-            if(!paciente) return alert("Escribe el nombre");
-            document.getElementById('login-screen').style.display = 'none';
+            if(!paciente) return alert("Por favor, pon el nombre");
+            document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('instruction-screen').style.display = 'flex';
         }
 
-        function iniciarJuego() {
+        function comenzarJuego() {
             document.getElementById('instruction-screen').style.display = 'none';
-            document.getElementById('val-pac').innerText = paciente;
-            iniciarCronometro();
-            prepararNivel();
-            animar();
+            iniciarNivel();
         }
 
-        function iniciarCronometro() {
-            cronometro = setInterval(() => {
-                segundos++;
-                let min = Math.floor(segundos / 60).toString().padStart(2, '0');
-                let seg = (segundos % 60).toString().padStart(2, '0');
-                document.getElementById('val-tiempo').innerText = `${min}:${seg}`;
-            }, 1000);
-        }
-
-        function prepararNivel() {
-            document.getElementById('msg-screen').style.display = 'none';
-            canvas.innerHTML = "";
-            figuras = [];
-            erroresNivel = 0;
-            const cant = Math.floor(Math.random() * 5) + 10 + nivel; 
-            objetivoActual = tipos[Math.floor(Math.random() * tipos.length)];
-            document.getElementById('objetivo-texto').innerText = `Busca: ${objetivoActual}s`;
-            
-            for(let i=0; i<cant; i++) figuras.push(new Figura());
-            figurasObjetivoRestantes = figuras.filter(f => f.tipo === objetivoActual).length;
-            if(figurasObjetivoRestantes === 0) return prepararNivel();
-            actualizarUI();
-        }
-
-        function actualizarUI() {
+        function iniciarNivel() {
+            document.getElementById('next-level-screen').style.display = 'none';
             document.getElementById('val-nivel').innerText = nivel;
-            document.getElementById('val-aciertos').innerText = aciertosTotales;
-            document.getElementById('val-err-nivel').innerText = `${erroresNivel}/3`;
+            jugando = true;
+            resetTimer();
+            startTimer();
+            generarEstimulo();
         }
 
-        class Figura {
-            constructor() {
-                this.el = document.createElement('div');
-                this.tipo = tipos[Math.floor(Math.random() * tipos.length)];
-                this.esRojo = Math.random() > 0.5;
-                this.size = Math.random() > 0.8 ? 70 : 100;
-                this.x = Math.random() * (window.innerWidth - this.size);
-                this.y = Math.random() * (window.innerHeight - this.size - 140) + 120;
-                this.vx = (Math.random() - 0.5) * velocidadBase;
-                this.vy = (Math.random() - 0.5) * velocidadBase;
-                this.init();
-            }
-
-            init() {
-                this.el.className = `target-box ${this.esRojo ? 'box-red' : 'box-green'}`;
-                this.el.style.width = this.size + 'px';
-                this.el.style.height = this.size + 'px';
-                const s = document.createElement('div');
-                if(this.tipo==='círculo') s.className="shape circle";
-                else if(this.tipo==='cuadrado') s.className="shape square";
-                else if(this.tipo==='triángulo') s.className="shape triangle";
-                else s.className="shape rombo";
-                this.el.appendChild(s);
-                this.el.onpointerdown = (e) => { e.preventDefault(); this.verificar(); };
-                canvas.appendChild(this.el);
-            }
-
-            actualizar() {
-                this.x += this.vx; this.y += this.vy;
-                if(this.x <= 0 || this.x >= window.innerWidth - this.size) this.vx *= -1;
-                if(this.y <= 120 || this.y >= window.innerHeight - this.size) this.vy *= -1;
-                this.el.style.transform = `translate(${this.x}px, ${this.y}px)`;
-            }
-
-            verificar() {
-                if(this.tipo === objetivoActual) {
-                    aciertosTotales++;
-                    figurasObjetivoRestantes--;
-                    this.el.style.setProperty('--x', `${this.x}px`);
-                    this.el.style.setProperty('--y', `${this.y}px`);
-                    this.el.classList.add('exploding');
-                    setTimeout(() => {
-                        if(this.el.parentNode) canvas.removeChild(this.el);
-                        figuras = figuras.filter(f => f !== this);
-                        if(figurasObjetivoRestantes <= 0) completarNivel();
-                    }, 350);
-                } else {
-                    erroresNivel++;
-                    erroresTotales++;
-                    this.el.style.boxShadow = "0 0 20px red";
-                    setTimeout(() => this.el.style.boxShadow = "none", 300);
-                    
-                    if(erroresNivel >= 3) {
-                        guardarDatos(); 
-                        lanzarMensaje("Sesión Finalizada", "Has cometido 3 errores en este nivel.", "Reiniciar Sesión");
-                    }
-                }
-                actualizarUI();
-            }
-        }
-
-        function completarNivel() {
-            nivel++;
-            velocidadBase += 0.5;
-            lanzarMensaje("¡Nivel Completado!", "Prepárate para el siguiente nivel.", "Siguiente Nivel");
-        }
-
-        function lanzarMensaje(t, s, b) {
-            document.getElementById('msg-titulo').innerText = t;
-            document.getElementById('msg-subtitulo').innerText = s;
-            const btn = document.querySelector('.btn-msg');
-            btn.innerText = b;
+        function generarEstimulo() {
+            const icon = figuras[Math.floor(Math.random() * figuras.length)];
+            correctBox = Math.random() > 0.5 ? 1 : 2;
             
-            if(t === "Sesión Finalizada") {
-                btn.onclick = () => { location.reload(); };
+            document.getElementById('box1').innerText = icon;
+            document.getElementById('box2').innerText = icon;
+            
+            // Efecto de disparidad para forzar integración
+            document.getElementById('box1').style.transform = correctBox === 1 ? 'translateX(5px)' : 'translateX(-5px)';
+            document.getElementById('box2').style.transform = correctBox === 2 ? 'translateX(5px)' : 'translateX(-5px)';
+        }
+
+        function checkTarget(isBox1) {
+            if(!jugando) return;
+            const hit = (isBox1 && correctBox === 1) || (!isBox1 && correctBox === 2);
+            
+            if(hit) {
+                aciertos++;
+                document.getElementById('val-ok').innerText = aciertos;
+                if(aciertos % 5 === 0) {
+                    avanzarNivel();
+                } else {
+                    generarEstimulo();
+                }
             } else {
-                btn.onclick = () => { prepararNivel(); };
+                fallos++;
+                document.getElementById('val-err').innerText = fallos;
+                document.body.style.backgroundColor = "#451a1a";
+                setTimeout(() => document.body.style.backgroundColor = "", 100);
+                if(fallos >= 5) finalizarYEnviar();
             }
+        }
+
+        function avanzarNivel() {
+            jugando = false;
+            stopTimer();
+            document.getElementById('stats-nivel').innerText = `Completaste el Nivel ${nivel} con éxito.`;
+            document.getElementById('next-level-screen').style.display = 'flex';
+            nivel++;
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                let diff = (Date.now() - startTime) / 1000;
+                document.getElementById('val-timer').innerText = diff.toFixed(1) + "s";
+            }, 100);
+        }
+        function stopTimer() { clearInterval(timerInterval); }
+        function resetTimer() { document.getElementById('val-timer').innerText = "0.0s"; }
+
+        function finalizarYEnviar() {
+            stopTimer();
+            jugando = false;
+            const tiempoFinal = document.getElementById('val-timer').innerText;
+            const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSdxsgdNOW4NRJU_jpePwURa6aiX89o-X5b90ofN6zxs396eEg/formResponse";
+            
+            const fd = new FormData();
+            fd.append("entry.76353775", paciente);
+            fd.append("entry.1871220940", "Integración binocular");
+            fd.append("entry.839149548", nivel);
+            fd.append("entry.356606780", aciertos);
+            fd.append("entry.239436075", fallos);
+            fd.append("entry.1745748054", tiempoFinal);
+            fd.append("entry.534957775", new Date().toISOString().split('T')[0]);
+
+            fetch(URL_FORM, { method: "POST", mode: "no-cors", body: fd });
+
+            document.getElementById('msg-subtitulo').innerText = `Paciente: ${paciente}\nNivel Alcanzado: ${nivel}\nAciertos: ${aciertos}\nFallos: ${fallos}\nTiempo: ${tiempoFinal}`;
             document.getElementById('msg-screen').style.display = 'flex';
-        }
-
-        function guardarDatos() {
-            // LocalStorage
-            let h = JSON.parse(localStorage.getItem('h_bin') || "[]");
-            h.push({f: new Date().toLocaleDateString(), p: paciente, n: nivel, e: erroresTotales});
-            localStorage.setItem('h_bin', JSON.stringify(h));
-
-            // Google Forms
-            const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLScIgP6SFKo8ACneK7EdifzxCyl8haYU7LLIys1NxjIiUklkWA/formResponse";
-            const formData = new FormData();
-            formData.append("entry.1971645483", paciente);
-            formData.append("entry.1310127986", "Binocular - Figuras");
-            formData.append("entry.1881234158", nivel);
-            formData.append("entry.2029359389", aciertosTotales);
-            formData.append("entry.2036354186", erroresTotales);
-            formData.append("entry.934609722", document.getElementById('val-tiempo').innerText);
-            formData.append("entry.143370750", new Date().toLocaleDateString());
-
-            fetch(URL_FORM, { method: "POST", mode: "no-cors", body: formData });
-        }
-
-        function abrirAdmin() {
-            if(prompt("Clave:")==="1234") {
-                document.getElementById('admin-panel').style.display='flex';
-                let h = JSON.parse(localStorage.getItem('h_bin') || "[]");
-                document.getElementById('cuerpoTabla').innerHTML = h.reverse().map(d => 
-                    `<tr><td>${d.f}</td><td>${d.p}</td><td>${d.n}</td><td>${d.e}</td></tr>`).join('');
-            }
-        }
-        function cerrarAdmin() { document.getElementById('admin-panel').style.display='none'; }
-        function animar() {
-            figuras.forEach(f => f.actualizar());
-            requestAnimationFrame(animar);
         }
     </script>
 </body>
