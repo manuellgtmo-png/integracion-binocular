@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica</title>
+    <title>Integración Binocular Avanzada</title>
     <style>
         :root { 
             --bg-dark: #0f172a; 
             --accent-pink: #e91e63;
-            /* Colores Exactos para Filtros */
             --rojo-fondo: #80322a;
             --rojo-figura: #69302a;
             --verde-fondo: #69913d;
@@ -16,7 +15,6 @@
         }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         
-        /* Capas de Interfaz (Tarjetas Blancas Estilo Canva) */
         #setup-screen, #instruction-screen, #msg-screen, #next-level-screen { 
             position: fixed; inset: 0; background: var(--bg-dark); z-index: 2000; 
             display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px;
@@ -27,99 +25,83 @@
             width: 90%; max-width: 450px; box-shadow: 0 25px 60px rgba(0,0,0,0.7); text-align: left;
         }
 
-        .obj-item { display: flex; align-items: center; margin-bottom: 15px; background: #f8fafc; padding: 14px; border-radius: 20px; border: 1px solid #f1f5f9; }
-        .obj-icon { font-size: 1.5rem; margin-right: 15px; background: white; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .obj-texto b { display: block; color: #334155; font-size: 1rem; }
-        .obj-texto span { font-size: 0.85rem; color: #64748b; line-height: 1.2; }
-
-        .btn-grande { background: var(--accent-pink); color: white; padding: 18px; border-radius: 16px; font-weight: bold; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; transition: 0.3s; box-shadow: 0 8px 20px rgba(233, 30, 99, 0.3); }
-        .btn-grande:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
+        .btn-grande { background: var(--accent-pink); color: white; padding: 18px; border-radius: 16px; font-weight: bold; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; transition: 0.3s; }
+        
         /* Área de Juego */
         #game-area { flex-grow: 1; position: relative; display: flex; overflow: hidden; cursor: crosshair; }
-        .lado { width: 50%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
+        .lado { width: 50%; height: 100%; position: relative; }
         #lado-rojo { background-color: var(--rojo-fondo); }
         #lado-verde { background-color: var(--verde-fondo); }
 
-        .figura { position: absolute; font-weight: bold; user-select: none; transition: font-size 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        #fig-roja { color: var(--rojo-figura); }
-        #fig-verde { color: var(--verde-figura); }
+        .target-container { position: absolute; cursor: pointer; user-select: none; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
+        .fig-roja { color: var(--rojo-figura); position: absolute; }
+        .fig-verde { color: var(--verde-figura); position: absolute; }
 
-        .header-clinico { width: 100%; background: #1e293b; padding: 15px; border-bottom: 4px solid var(--accent-pink); display: flex; justify-content: space-around; z-index: 100; box-sizing: border-box; }
-        .stat-val { color: var(--accent-pink); font-size: 1.4rem; font-weight: bold; display: block; }
-        .stat-label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; font-weight: bold; }
+        .header-clinico { width: 100%; background: #1e293b; padding: 12px; border-bottom: 4px solid var(--accent-pink); display: flex; justify-content: space-around; z-index: 100; box-sizing: border-box; align-items: center; }
+        .stat-group { text-align: center; }
+        .stat-val { color: var(--accent-pink); font-size: 1.2rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; font-weight: bold; }
+        
+        #instruccion-nivel { position: absolute; top: 80px; width: 100%; text-align: center; z-index: 50; pointer-events: none; }
+        #instruccion-nivel span { background: rgba(0,0,0,0.6); padding: 8px 20px; border-radius: 20px; border: 1px solid var(--accent-pink); font-weight: bold; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
     <div id="setup-screen">
         <div class="card-blanca">
-            <h2 style="margin:0 0 10px 0; text-align:center; color: #0f172a;">Integración Binocular</h2>
-            <p style="text-align:center; color:#64748b; margin-bottom:25px;">Módulo de Fusión Progresiva</p>
-            <label style="font-size: 0.85rem; font-weight: bold; color: #475569; margin-left: 5px;">PACIENTE</label>
-            <input type="text" id="nombrePaciente" style="width:100%; padding:16px; border-radius:14px; border:2px solid #e2e8f0; margin-top:8px; box-sizing:border-box; font-size:1.1rem; outline-color: var(--accent-pink);" placeholder="Escribe el nombre...">
+            <h2 style="margin:0 0 10px 0; text-align:center;">Terapia Binocular</h2>
+            <input type="text" id="nombrePaciente" style="width:100%; padding:16px; border-radius:14px; border:2px solid #e2e8f0; margin-top:8px; box-sizing:border-box;" placeholder="Nombre del Paciente">
             <button class="btn-grande" onclick="mostrarInstrucciones()">Continuar</button>
         </div>
     </div>
 
     <div id="instruction-screen" style="display:none">
         <div class="card-blanca">
-            <h3 style="margin:0 0 20px 0; color: #1e293b; text-align:center;">¿Qué trabajaremos hoy?</h3>
-            <div class="obj-item">
-                <div class="obj-icon">🧩</div>
-                <div class="obj-texto"><b>Fusión Sensorial</b><span>Combinar las imágenes de ambos ojos en una sola.</span></div>
-            </div>
-            <div class="obj-item">
-                <div class="obj-icon">🚦</div>
-                <div class="obj-texto"><b>Control de Supresión</b><span>Activar la visión binocular para ver la figura oculta.</span></div>
-            </div>
-            <div class="obj-item">
-                <div class="obj-icon">👁️</div>
-                <div class="obj-texto"><b>Fijación Dinámica</b><span>Seguir el objetivo mientras cambia de tamaño y lugar.</span></div>
-            </div>
-            <button class="btn-grande" onclick="comenzarJuego()">¡Empezar Terapia!</button>
+            <h3 style="color:var(--accent-pink); text-align:center;">Instrucciones de Fusión</h3>
+            <p>1. Usa tus gafas.<br>2. Debes tocar <b>solo la letra indicada</b>.<br>3. Tocar el fondo o la letra incorrecta resta una vida.<br>4. ¡Tienes 2 vidas por nivel!</p>
+            <button class="btn-grande" onclick="comenzarJuego()">¡Entendido!</button>
         </div>
     </div>
 
     <div id="next-level-screen" style="display:none">
-        <h1 style="color:white; font-size: 3.5rem; text-shadow: 0 0 30px var(--accent-pink); margin-bottom: 10px;">¡LOGRADO!</h1>
-        <p style="color: #cbd5e1; font-size: 1.2rem; margin-bottom: 20px;">Fusión mantenida con éxito</p>
+        <h1 style="color:white; font-size: 3rem; text-shadow: 0 0 20px var(--accent-pink);">¡Nivel Superado!</h1>
         <button class="btn-grande" style="width:280px" onclick="iniciarNivel()">Siguiente Nivel ➔</button>
     </div>
 
     <div id="msg-screen" style="display:none">
         <div class="card-blanca" style="text-align:center;">
-            <div style="font-size: 4rem; margin-bottom: 10px;">✅</div>
-            <h2 style="color:#0f172a; margin:0;">Sesión Guardada</h2>
-            <p id="resumen-final" style="line-height:1.6; color:#475569; background: #f1f5f9; padding: 15px; border-radius: 15px; margin: 20px 0;"></p>
-            <button class="btn-grande" onclick="location.reload()">Terminar</button>
+            <h2 id="final-status">Sesión Finalizada</h2>
+            <p id="resumen-final" style="background: #f1f5f9; padding: 15px; border-radius: 15px; margin: 20px 0; color:#475569;"></p>
+            <button class="btn-grande" onclick="location.reload()">Reiniciar</button>
         </div>
     </div>
 
     <div class="header-clinico">
-        <div><span class="stat-label">Nivel</span><span id="val-nivel" class="stat-val">1</span></div>
-        <div><span class="stat-label">Aciertos</span><span id="val-ok" class="stat-val">0</span></div>
-        <div><span class="stat-label">Fallos</span><span id="val-err" style="color:#ef4444" class="stat-val">0</span></div>
-        <div><span class="stat-label">Tiempo</span><span id="val-timer" class="stat-val">0.0s</span></div>
+        <div class="stat-group"><span class="stat-label">Nivel</span><span id="val-nivel" class="stat-val">1</span></div>
+        <div class="stat-group"><span class="stat-label">Aciertos</span><span id="val-ok" class="stat-val">0</span></div>
+        <div class="stat-group"><span class="stat-label">Vidas</span><span id="val-vidas" class="stat-val" style="color:#10b981">2</span></div>
+        <div class="stat-group"><span class="stat-label">Fallos</span><span id="val-err" style="color:#ef4444" class="stat-val">0</span></div>
+        <div class="stat-group"><span class="stat-label">Tiempo</span><span id="val-timer" class="stat-val">0.0s</span></div>
     </div>
 
-    <div id="game-area">
-        <div id="lado-rojo" class="lado">
-            <div id="fig-roja" class="figura" onclick="registrarAcierto()">E</div>
-        </div>
-        <div id="lado-verde" class="lado">
-            <div id="fig-verde" class="figura" onclick="registrarAcierto()">E</div>
-        </div>
+    <div id="instruccion-nivel"><span id="texto-tarea">Toca la letra E</span></div>
+
+    <div id="game-area" onclick="clickFondo()">
+        <div id="lado-rojo" class="lado"></div>
+        <div id="lado-verde" class="lado"></div>
     </div>
 
     <script>
-        let paciente = "", nivel = 1, aciertosNivel = 0, aciertosTotales = 0, fallos = 0;
-        let posX, posY, velX, velY, size;
-        let jugando = false, startTime, timerInterval;
+        let paciente = "", nivel = 1, aciertosNivel = 0, aciertosTotales = 0, fallos = 0, vidas = 2;
+        let jugando = false, startTime, timerInterval, letraObjetivo = "E";
+        let elementos = [];
+
+        const letrasPosibles = ["E", "H", "O", "X", "U", "V", "A"];
 
         function mostrarInstrucciones() {
             paciente = document.getElementById('nombrePaciente').value.trim();
-            if(!paciente) return alert("Por favor, ingresa el nombre del paciente.");
+            if(!paciente) return alert("Ingresa el nombre");
             document.getElementById('setup-screen').style.display = 'none';
             document.getElementById('instruction-screen').style.display = 'flex';
         }
@@ -131,58 +113,116 @@
 
         function iniciarNivel() {
             document.getElementById('next-level-screen').style.display = 'none';
-            jugando = true;
-            aciertosNivel = 0;
+            jugando = true; aciertosNivel = 0; vidas = 2;
+            document.getElementById('val-vidas').innerText = vidas;
             document.getElementById('val-nivel').innerText = nivel;
             
-            // Tamaño progresivo: disminuye para aumentar dificultad
-            size = Math.max(45, 160 - (nivel * 20));
-            document.getElementById('fig-roja').style.fontSize = size + 'px';
-            document.getElementById('fig-verde').style.fontSize = size + 'px';
+            letraObjetivo = letrasPosibles[Math.floor(Math.random() * letrasPosibles.length)];
+            document.getElementById('texto-tarea').innerText = `Toca todas las ${letraObjetivo}`;
 
-            posX = 50; posY = 50;
-            velX = (2 + nivel * 0.4); 
-            velY = (2 + nivel * 0.4);
-            
+            generarEscena();
             resetTimer(); startTimer();
-            requestAnimationFrame(mover);
+            requestAnimationFrame(animar);
         }
 
-        function mover() {
+        function generarEscena() {
+            const rojoArea = document.getElementById('lado-rojo');
+            const verdeArea = document.getElementById('lado-verde');
+            rojoArea.innerHTML = ""; verdeArea.innerHTML = "";
+            elementos = [];
+
+            const numObjetivos = 3;
+            const numDistractores = nivel * 2; // Más distractores según nivel
+            const total = numObjetivos + numDistractores;
+
+            for(let i=0; i<total; i++) {
+                const esObjetivo = i < numObjetivos;
+                const letra = esObjetivo ? letraObjetivo : letrasPosibles.filter(l => l !== letraObjetivo)[Math.floor(Math.random()*6)];
+                const size = Math.max(40, 150 - (nivel * 15));
+                
+                const x = Math.random() * (window.innerWidth / 2 - size);
+                const y = Math.random() * (window.innerHeight - 200) + 10;
+                
+                const el = {
+                    x, y, 
+                    vx: (Math.random() - 0.5) * (2 + nivel),
+                    vy: (Math.random() - 0.5) * (2 + nivel),
+                    letra, esObjetivo, size,
+                    rojo: crearElementoVisual(letra, size, x, y, 'fig-roja', rojoArea, esObjetivo),
+                    verde: crearElementoVisual(letra, size, x, y, 'fig-verde', verdeArea, esObjetivo)
+                };
+                elementos.push(el);
+            }
+        }
+
+        function crearElementoVisual(letra, size, x, y, clase, parent, esObjetivo) {
+            const div = document.createElement('div');
+            div.className = clase;
+            div.innerText = letra;
+            div.style.fontSize = size + 'px';
+            div.style.left = x + 'px';
+            div.style.top = y + 'px';
+            if(esObjetivo) div.onclick = (e) => { e.stopPropagation(); registrarAcierto(div); };
+            else div.onclick = (e) => { e.stopPropagation(); penalizar(); };
+            parent.appendChild(div);
+            return div;
+        }
+
+        function animar() {
             if(!jugando) return;
             const areaW = window.innerWidth / 2;
             const areaH = window.innerHeight - 100;
 
-            posX += velX; posY += velY;
+            elementos.forEach(el => {
+                el.x += el.vx; el.y += el.vy;
+                if(el.x <= 0 || el.x >= areaW - el.size) el.vx *= -1;
+                if(el.y <= 0 || el.y >= areaH - el.size) el.vy *= -1;
 
-            if(posX <= 10 || posX >= areaW - size) velX *= -1;
-            if(posY <= 10 || posY >= areaH - size) velY *= -1;
-
-            document.getElementById('fig-roja').style.left = posX + 'px';
-            document.getElementById('fig-roja').style.top = posY + 'px';
-            document.getElementById('fig-verde').style.left = posX + 'px';
-            document.getElementById('fig-verde').style.top = posY + 'px';
-
-            requestAnimationFrame(mover);
+                el.rojo.style.left = el.x + 'px'; el.rojo.style.top = el.y + 'px';
+                el.verde.style.left = el.x + 'px'; el.verde.style.top = el.y + 'px';
+            });
+            requestAnimationFrame(animar);
         }
 
-        function registrarAcierto() {
+        function registrarAcierto(div) {
             if(!jugando) return;
-            aciertosNivel++;
-            aciertosTotales++;
+            const letraActual = div.innerText;
+            // Eliminar par de elementos
+            elementos = elementos.filter(el => {
+                if(el.letra === letraActual && el.esObjetivo) {
+                    el.rojo.remove(); el.verde.remove();
+                    return false;
+                }
+                return true;
+            });
+
+            aciertosNivel++; aciertosTotales++;
             document.getElementById('val-ok').innerText = aciertosTotales;
-            
-            if(aciertosNivel >= 5) {
+
+            if(aciertosNivel >= 3) {
                 jugando = false; stopTimer();
-                if(nivel >= 5) { finalizarYEnviar(); } 
-                else { document.getElementById('next-level-screen').style.display = 'flex'; nivel++; }
-            } else {
-                const letras = ["E", "H", "O", "X", "U", "V"];
-                const nueva = letras[Math.floor(Math.random()*letras.length)];
-                document.getElementById('fig-roja').innerText = nueva;
-                document.getElementById('fig-verde').innerText = nueva;
+                if(nivel >= 5) finalizarYEnviar("¡Sesión Completada!");
+                else document.getElementById('next-level-screen').style.display = 'flex';
+                nivel++;
             }
         }
+
+        function penalizar() {
+            if(!jugando) return;
+            fallos++; vidas--;
+            document.getElementById('val-err').innerText = fallos;
+            document.getElementById('val-vidas').innerText = vidas;
+            
+            document.body.style.boxShadow = "inset 0 0 100px #ef4444";
+            setTimeout(() => document.body.style.boxShadow = "none", 200);
+
+            if(vidas <= 0) {
+                jugando = false; stopTimer();
+                finalizarYEnviar("Fin de Vidas");
+            }
+        }
+
+        function clickFondo() { penalizar(); }
 
         function startTimer() {
             startTime = Date.now();
@@ -193,14 +233,14 @@
         function stopTimer() { clearInterval(timerInterval); }
         function resetTimer() { document.getElementById('val-timer').innerText = "0.0s"; }
 
-        function finalizarYEnviar() {
+        function finalizarYEnviar(motivo) {
             const tiempoFinal = document.getElementById('val-timer').innerText;
             const URL_FORM = "https://docs.google.com/forms/d/e/1FAIpQLSfcw4zd4GvGH8TVc_C2oWJOAHQbZ2PM_uRlREwbjeOq6HdXIQ/formResponse";
             
             const fd = new FormData();
             fd.append("entry.1571018380", paciente);
-            fd.append("entry.1811640882", "Integración binocular camuflada");
-            fd.append("entry.1634944997", nivel);
+            fd.append("entry.1811640882", "Integración binocular múltiple");
+            fd.append("entry.1634944997", nivel - 1);
             fd.append("entry.991256689", aciertosTotales);
             fd.append("entry.726859582", fallos);
             fd.append("entry.1808531736", tiempoFinal);
@@ -208,9 +248,11 @@
 
             fetch(URL_FORM, { method: "POST", mode: "no-cors", body: fd });
 
-            document.getElementById('resumen-final').innerText = `Paciente: ${paciente}\nNiveles: ${nivel}\nAciertos: ${aciertosTotales}\nTiempo: ${tiempoFinal}`;
+            document.getElementById('final-status').innerText = motivo;
+            document.getElementById('resumen-final').innerText = `Paciente: ${paciente}\nNivel Alcanzado: ${nivel-1}\nAciertos: ${aciertosTotales}\nFallos: ${fallos}\nTiempo: ${tiempoFinal}`;
             document.getElementById('msg-screen').style.display = 'flex';
         }
     </script>
 </body>
 </html>
+
