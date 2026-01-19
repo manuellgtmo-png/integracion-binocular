@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular Clínica v3</title>
+    <title>Integración Binocular Clínica - Sistema de Reporte</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -13,16 +13,20 @@
         }
         body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
         
+        /* Capas de Interfaz */
         .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
         .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); position: relative; }
         .card-dark { background: #16213e; color: white; border: 2px solid var(--accent-blue); }
 
         .btn-gear { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; font-size: 1.2rem; opacity: 0.3; }
-        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; }
+        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; transition: 0.2s; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #b31d45; }
         
+        /* Barra de Administración */
         #admin-bar { display: none; background: var(--accent-blue); color: #0a0f1d; padding: 8px 20px; justify-content: space-between; align-items: center; font-weight: bold; font-size: 0.8rem; }
         .btn-view { background: #0a0f1d; color: white; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
 
+        /* HUD del Juego */
         .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
         .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
         
@@ -31,7 +35,7 @@
         #lado-rojo { background: var(--rojo-fondo); }
         #lado-verde { background: var(--verde-fondo); }
         
-        .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
         #indicador { position: absolute; top: 115px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 6px 25px; border-radius: 50px; font-weight: 900; z-index: 1000; border: 3px solid var(--accent-pink); }
         
         input { width: 100%; padding: 15px; border-radius: 15px; border: 3px solid #eee; margin-top: 10px; text-align: center; font-weight: bold; box-sizing: border-box; }
@@ -45,7 +49,7 @@
 
 <div id="admin-bar">
     <span>MODO PROFESIONAL ACTIVO</span>
-    <button class="btn-view" onclick="window.open('https://docs.google.com/forms/d/1X-uG2x_SclIeA290nC84i6-9u6p6x_G5yI9K-fT_0cM/edit#responses', '_blank')">📊 VER RESULTADOS</button>
+    <button class="btn-view" onclick="window.open('https://docs.google.com/spreadsheets/d/1Tm068QA9fWLAmnrqYgIqDdcl211OZkyIpcd0/edit', '_blank')">📊 VER RESULTADOS</button>
 </div>
 
 <div id="screen-start" class="overlay">
@@ -60,12 +64,12 @@
 
 <div id="screen-intro" class="overlay" style="display:none">
     <div class="card">
-        <h2 style="color:var(--accent-pink);">Instrucciones</h2>
+        <h2 style="color:var(--accent-pink);">Instrucciones de Fusión</h2>
         <ul style="text-align:left; color:#2d3436; line-height:1.6;">
-            <li>Usa tus gafas 3D (Rojo/Verde).</li>
-            <li>Toca <b>solo</b> el objeto indicado.</li>
-            <li>Si fallas o tocas el fondo, pierdes vidas.</li>
-            <li>¡Tienes 2 vidas por nivel!</li>
+            <li>1. Usa tus gafas (Rojo/Verde).</li>
+            <li>2. Toca <b>solo</b> la letra o figura indicada.</li>
+            <li>3. Tocar el fondo resta una vida.</li>
+            <li>4. ¡Tienes 2 vidas por nivel!</li>
         </ul>
         <button class="btn" onclick="showSkills()">ENTENDIDO</button>
     </div>
@@ -75,11 +79,11 @@
     <div class="card card-dark">
         <h2 style="color:var(--accent-blue);">✨ Misión de Hoy:</h2>
         <div style="text-align:left; margin: 20px 0;">
-            <p>🚀 <b>Antisupresión:</b> Estimula tu ojo más débil.</p>
-            <p>🧩 <b>Fusión Total:</b> Une las piezas con ambos ojos.</p>
-            <p>🎯 <b>Estereopsis:</b> Identifica formas de todo tamaño.</p>
+            <p>🚀 <b>Súper Reacción:</b> ¡Toca rápido!</p>
+            <p>🎯 <b>Puntería Láser:</b> No falles la letra.</p>
+            <p>👁️ <b>Fusión Total:</b> Usa tus dos ojos.</p>
         </div>
-        <button class="btn" onclick="startGame()">¡EMPEZAR JUEGO!</button>
+        <button class="btn" onclick="startGame()">¡EMPEZAR!</button>
     </div>
 </div>
 
@@ -110,7 +114,7 @@
     }
 
     function showIntro() {
-        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Completa los datos.");
+        if(!document.getElementById('paciente').value || !document.getElementById('profesional').value) return alert("Por favor completa los nombres.");
         document.getElementById('screen-start').style.display = 'none';
         document.getElementById('screen-intro').style.display = 'flex';
     }
@@ -149,11 +153,16 @@
         const div = document.createElement('div');
         div.className = "figura";
         div.innerText = esObj ? objActual : formas.filter(f => f !== objActual)[Math.floor(Math.random()*5)];
-        const size = (Math.max(35, 140 - (nivel * 6))) * (Math.random() * 0.7 + 0.6);
+        
+        const baseSize = Math.max(35, 140 - (nivel * 6));
+        const size = baseSize * (Math.random() * 0.7 + 0.6);
+        
         div.style.fontSize = size + 'px';
         div.style.color = lado === 'rojo' ? 'var(--rojo-figura)' : 'var(--verde-figura)';
+        
         const el = { dom: div, x: Math.random()*(window.innerWidth/2-80), y: Math.random()*(window.innerHeight-250), 
                      vx: (Math.random()-0.5)*(1.5+nivel*0.3), vy: (Math.random()-0.5)*(1.5+nivel*0.3), size, esObj };
+        
         div.onclick = (e) => {
             e.stopPropagation();
             if(esObj) { 
@@ -185,22 +194,33 @@
         document.getElementById('flash').style.animation = "none"; document.getElementById('flash').offsetHeight; 
         document.getElementById('flash').style.animation = "errorFlash 0.4s";
         document.getElementById('txt-vidas').innerText = vidas;
-        if(vidas <= 0) { final(); alert("Fin de vidas. Reporte enviado."); location.reload(); }
+        if(vidas <= 0) { 
+            jugando = false; 
+            enviarReporteFinal(); 
+            alert("Fin de vidas. Reporte enviado al sistema."); 
+            location.reload(); 
+        }
     }
 
-    function passLevel() { jugando = false; nivel++; alert("¡Nivel " + nivel + "!"); iniciarNivel(); }
+    function passLevel() { jugando = false; nivel++; alert("¡Nivel " + nivel + " completado!"); iniciarNivel(); }
 
-    function final() {
+    function enviarReporteFinal() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSfcw4zd4GvGH8TVc_C2oWJOAHQbZ2PM_uRlREwbjeOq6HdXIQ/formResponse";
-        const fd = new FormData();
-        fd.append("entry.1571018380", document.getElementById('paciente').value);
-        fd.append("entry.1811640882", "Fusión Clínica (Prof: " + document.getElementById('profesional').value + ")");
-        fd.append("entry.1634944997", nivel);
-        fd.append("entry.991256689", totalAciertos);
-        fd.append("entry.726859582", fallos);
-        fd.append("entry.1808531736", document.getElementById('txt-timer').innerText);
-        fd.append("entry.651647598", new Date().toISOString().split('T')[0]);
-        fetch(url, { method: "POST", mode: "no-cors", body: fd });
+        const params = new URLSearchParams();
+        params.append("entry.1571018380", document.getElementById('paciente').value);
+        params.append("entry.1811640882", "Integración Binocular (Prof: " + document.getElementById('profesional').value + ")");
+        params.append("entry.1634944997", nivel);
+        params.append("entry.991256689", totalAciertos);
+        params.append("entry.726859582", fallos);
+        params.append("entry.1808531736", document.getElementById('txt-timer').innerText);
+        params.append("entry.651647598", new Date().toISOString().split('T')[0]);
+
+        fetch(url, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params.toString()
+        });
     }
 </script>
 </body>
