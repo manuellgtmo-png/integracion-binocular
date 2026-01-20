@@ -9,239 +9,205 @@
         :root { 
             --bg: #0f172a; --primary: #f8fafc; --pink: #ff2e63; 
             --blue: #38bdf8; --card: #1e293b; --success: #10b981; --yellow: #facc15;
+            --rojo-bg: #80322a; --rojo-fig: #69302a;
+            --verde-bg: #69913d; --verde-fig: #6c7b5a;
         }
-        body { margin: 0; font-family: 'Montserrat'; background: var(--bg); color: var(--primary); overflow: hidden; height: 100vh; }
-        
-        /* Header Stats */
-        .header { height: 80px; background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-bottom: 4px solid var(--success); }
+        body { margin: 0; font-family: 'Montserrat'; background: var(--bg); color: var(--primary); overflow: hidden; height: 100vh; transition: background 0.2s; }
+        body.error-flash { background: #450a0a !important; }
+
+        .header { height: 80px; background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-bottom: 4px solid var(--verde-bg); }
         .stat { text-align: center; }
         .stat b { display: block; color: var(--blue); font-size: 0.7rem; text-transform: uppercase; }
-        .stat span { font-size: 1.5rem; font-weight: 900; }
+        .stat span { font-size: 1.3rem; font-weight: 900; }
 
-        #game-area { height: calc(100vh - 80px); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        #instruccion-dinamica { 
+            background: #1e293b; padding: 15px; text-align: center; font-weight: 900; 
+            font-size: 1.4rem; color: var(--yellow); border-bottom: 2px solid #334155;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        #game-area { height: calc(100vh - 150px); position: relative; cursor: crosshair; }
         
-        /* Pantallas de Interfaz */
+        .obj { position: absolute; width: 65px; height: 65px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 900; cursor: pointer; user-select: none; transition: opacity 0.2s; }
+        .obj.rojo { background: var(--rojo-bg); color: var(--rojo-fig); border: 2px solid rgba(255,255,255,0.05); }
+        .obj.verde { background: var(--verde-bg); color: var(--verde-fig); border: 2px solid rgba(255,255,255,0.05); }
+
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #1e293b; border-radius: 40px; padding: 40px; width: 100%; max-width: 450px; text-align: center; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .card { background: #1e293b; border-radius: 40px; padding: 40px; width: 100%; max-width: 450px; text-align: center; border: 1px solid #334155; }
         
-        .habilidades { text-align: left; background: #334155; padding: 20px; border-radius: 20px; margin: 20px 0; border-left: 5px solid var(--success); }
-        .habilidades h4 { margin: 0 0 5px 0; color: var(--success); font-size: 0.85rem; }
-        .habilidades p { margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; }
+        .btn { background: var(--pink); color: white; padding: 20px; border-radius: 22px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; text-transform: uppercase; box-shadow: 0 8px 0 #9f1239; margin-top: 10px; }
+        #btn-next-level { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); width: auto; padding: 15px 50px; background: var(--verde-bg); box-shadow: 0 6px 0 #3f5e23; display: none; z-index: 100; }
 
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; color: var(--blue); font-size: 0.8rem; margin-bottom: 8px; font-weight: 900; text-transform: uppercase; }
-        .input-group input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #334155; background: #0f172a; color: white; font-family: 'Montserrat'; box-sizing: border-box; outline: none; }
-
-        .btn { background: var(--pink); color: white; padding: 20px; border-radius: 22px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; text-transform: uppercase; box-shadow: 0 8px 0 #9f1239; transition: 0.2s; }
-        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #9f1239; }
-
-        /* Elementos del Juego (Lógica Original) */
-        .box { width: 120px; height: 120px; position: absolute; border-radius: 25px; cursor: pointer; transition: transform 0.1s, opacity 0.3s; display: flex; align-items: center; justify-content: center; font-size: 3rem; user-select: none; }
-        .red { background-color: rgba(255, 0, 0, 0.6); border: 6px solid #ff0000; box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); color: white; }
-        .cyan { background-color: rgba(0, 255, 255, 0.6); border: 6px solid #00ffff; box-shadow: 0 0 25px rgba(0, 255, 255, 0.4); color: #004a4a; }
-        
-        .feedback { position: absolute; font-weight: 900; font-size: 2rem; pointer-events: none; animation: flyUp 0.8s forwards; }
-        @keyframes flyUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
+        input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #334155; background: #0f172a; color: white; margin-bottom: 20px; font-family: 'Montserrat'; text-align: center; }
     </style>
 </head>
-<body>
+<body onclick="registrarFallo(event)">
 
 <div id="screen-start" class="overlay">
     <div class="card">
-        <h1 style="color:var(--success); margin:0; font-size: 2.5rem;">¡HOLA! ✨</h1>
-        <p style="margin-top: 5px; font-weight: 900; color: white;">Integración Binocular</p>
-        
-        <div class="habilidades">
-            <h4>🎯 OBJETIVOS TERAPÉUTICOS:</h4>
-            <p>• Fomentar la fusión sensorial.<br>• Eliminar la supresión de imagen.<br>• Entrenar la binocularidad profunda.</p>
-        </div>
-
-        <div class="input-group">
-            <label>Nombre del Paciente:</label>
-            <input type="text" id="paciente-nombre" placeholder="Escribe aquí el nombre" oninput="actualizarDisplay()">
-        </div>
-
-        <button class="btn" onclick="pasoAInstrucciones()">SIGUIENTE</button>
-    </div>
-</div>
-
-<div id="screen-instruccion" class="overlay" style="display:none">
-    <div class="card">
-        <h2 style="color:var(--yellow);">¿PREPARADO?</h2>
-        <div style="text-align: left; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-            <p>1. Ponte tus <b>gafas anaglifo</b> (Rojo/Azul).</p>
-            <p>2. Aparecerán cuadros de diferentes colores.</p>
-            <p>3. Tócalos rápidamente para "unirlos" en tu cerebro.</p>
-        </div>
-        <button class="btn" onclick="empezarJuegoReal()" style="background: var(--success); box-shadow: 0 8px 0 #065f46;">¡EMPEZAR YA!</button>
+        <h1 style="color:var(--verde-bg); margin:0;">BIENVENIDO ✨</h1>
+        <p style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 20px;">Entrenamiento de Integración y Supresión</p>
+        <input type="text" id="paciente-nombre" placeholder="Nombre del paciente">
+        <button class="btn" onclick="iniciarJuego()">COMENZAR SESIÓN</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--pink)">SESIÓN COMPLETADA</h1>
-        <p id="resumen-texto" style="color: white; font-size: 1.1rem;"></p>
-        <div id="envio-status" style="margin:20px 0; font-weight:900; color:var(--blue);">🚀 SINCRONIZANDO CON EXCEL...</div>
-        <button class="btn" onclick="location.reload()" style="background:#475569; box-shadow: 0 8px 0 #1e293b;">REPETIR JUEGO</button>
+        <h1 style="color:var(--pink)">RESULTADOS</h1>
+        <p id="resumen" style="color:white; font-size: 1.2rem;"></p>
+        <div id="envio-status" style="margin:20px 0; font-weight:900; color:var(--blue);">🚀 SINCRONIZANDO EXCEL...</div>
+        <button class="btn" onclick="location.reload()" style="background:#475569; box-shadow: 0 8px 0 #1e293b;">SALIR</button>
     </div>
 </div>
 
 <div class="header">
     <div class="stat"><b>Nivel</b><span id="txt-nivel">1</span></div>
-    <div class="stat"><b>Aciertos</b><span id="txt-ok">0</span></div>
-    <div class="stat"><b>Paciente</b><span id="display-paciente">---</span></div>
+    <div class="stat"><b>Vidas</b><span id="txt-vidas" style="color:var(--pink)">2</span></div>
+    <div class="stat"><b>Tiempo</b><span id="txt-cron">00:00</span></div>
 </div>
 
+<div id="instruccion-dinamica">ESPERANDO INICIO...</div>
+
 <div id="game-area"></div>
+
+<button id="btn-next-level" class="btn" onclick="pasarNivel()">SIGUIENTE NIVEL ➜</button>
 
 <iframe name="target_frame" id="target_frame" style="display:none;"></iframe>
 
 <script>
-    // --- LÓGICA DE ESTADO Y DATOS ---
-    let nivel = 1;
-    let aciertos = 0;
-    let fallos = 0;
-    let paciente = localStorage.getItem('paciente') || "";
-    let profesional = localStorage.getItem('profesional') || "Especialista";
-    let startTime;
-    let gameActive = false;
-
-    // Inicialización al cargar
-    window.onload = () => {
-        if(paciente) {
-            document.getElementById('paciente-nombre').value = paciente;
-            document.getElementById('display-paciente').innerText = paciente;
-        }
-    };
-
-    function actualizarDisplay() {
-        paciente = document.getElementById('paciente-nombre').value;
-        localStorage.setItem('paciente', paciente);
-        document.getElementById('display-paciente').innerText = paciente || "---";
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function sonar(f, d, t='sine') {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
+        g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    function pasoAInstrucciones() {
-        if(!paciente) return alert("Por favor, ingresa el nombre del paciente.");
+    let nivel = 1, aciertos = 0, fallos = 0, vidas = 2, segs = 0;
+    let crono, gameActive = false, objetivoActual = "";
+    
+    // Diccionario de posibles objetivos (Texto : Símbolo)
+    const items = { "Letra U": "U", "Círculo": "●", "Estrella": "★", "Letra O": "O", "Cuadrado": "■", "Triángulo": "▲" };
+
+    function iniciarJuego() {
+        const nombre = document.getElementById('paciente-nombre').value;
+        if(!nombre) return alert("Por favor, ingresa el nombre del paciente");
+        localStorage.setItem('paciente', nombre);
         document.getElementById('screen-start').style.display = 'none';
-        document.getElementById('screen-instruccion').style.display = 'flex';
-    }
-
-    function empezarJuegoReal() {
-        document.getElementById('screen-instruccion').style.display = 'none';
         gameActive = true;
-        startTime = Date.now();
-        generarObjetivo();
+        crono = setInterval(() => { segs++; document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); }, 1000);
+        cargarPantalla();
     }
 
-    // --- MOTOR DEL JUEGO (RECONSTRUIDO PASO A PASO) ---
-    function generarObjetivo() {
-        if(!gameActive) return;
-        
+    function cargarPantalla() {
         const area = document.getElementById('game-area');
         area.innerHTML = "";
+        document.getElementById('btn-next-level').style.display = "none";
         
-        const target = document.createElement('div');
-        const esRojo = Math.random() > 0.5;
-        target.className = `box ${esRojo ? 'red' : 'cyan'}`;
-        
-        // El contenido puede ser un icono aleatorio para mayor estimulación
-        const iconos = ["👁️", "✨", "🎯", "🌟", "🔥"];
-        target.innerText = iconos[Math.floor(Math.random() * iconos.length)];
+        // Elegir nuevo objetivo para este nivel
+        const keys = Object.keys(items);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        objetivoActual = items[randomKey];
+        document.getElementById('instruccion-dinamica').innerText = `Toca todos los: ${randomKey}`;
 
-        // Lógica de posicionamiento original
-        const padding = 140;
-        const x = Math.random() * (area.clientWidth - padding);
-        const y = Math.random() * (area.clientHeight - padding);
-        
-        target.style.left = x + "px";
-        target.style.top = y + "px";
-        
-        // Dificultad por nivel (Tamaño decreciente)
-        const escala = Math.max(0.5, 1.2 - (nivel * 0.1));
-        target.style.transform = `scale(${escala})`;
+        let cantidad = 10 + (nivel * 2);
+        for(let i=0; i < cantidad; i++) {
+            const obj = document.createElement('div');
+            const esRojo = Math.random() > 0.5;
+            // Mezclar símbolos aleatorios
+            const simboloRandom = items[keys[Math.floor(Math.random() * keys.length)]];
+            
+            obj.className = `obj ${esRojo ? 'rojo' : 'verde'}`;
+            obj.innerText = simboloRandom;
+            
+            // Tamaño reduce con nivel
+            const size = Math.max(45, 75 - (nivel * 2));
+            obj.style.width = size + "px"; obj.style.height = size + "px";
+            obj.style.fontSize = (size * 0.6) + "px";
 
-        target.onclick = (e) => {
-            e.stopPropagation();
-            manejarAcierto(target);
-        };
+            obj.style.left = Math.random() * (area.clientWidth - size - 10) + "px";
+            obj.style.top = Math.random() * (area.clientHeight - size - 10) + "px";
+            
+            if(simboloRandom === objetivoActual) obj.dataset.target = "true";
 
-        area.appendChild(target);
-    }
-
-    function manejarAcierto(elemento) {
-        aciertos++;
-        document.getElementById('txt-ok').innerText = aciertos;
-        
-        // Efecto visual de "¡Bien!"
-        const feedback = document.createElement('div');
-        feedback.className = "feedback";
-        feedback.innerText = "¡BIEN!";
-        feedback.style.left = elemento.style.left;
-        feedback.style.top = elemento.style.top;
-        feedback.style.color = (elemento.classList.contains('red')) ? "#ff2e63" : "#38bdf8";
-        document.getElementById('game-area').appendChild(feedback);
-        setTimeout(() => feedback.remove(), 800);
-
-        // Lógica de niveles original
-        if(aciertos % 10 === 0) {
-            nivel++;
-            document.getElementById('txt-nivel').innerText = nivel;
-            if(nivel > 5) { // Finaliza en nivel 5 para la prueba, puedes subirlo
-                finalizarSesionFinal();
-                return;
-            }
+            obj.onclick = (e) => {
+                e.stopPropagation();
+                if(obj.dataset.target === "true") {
+                    sonar(800, 0.1);
+                    obj.style.opacity = "0";
+                    obj.style.pointerEvents = "none";
+                    aciertos++;
+                    verificarLimpieza();
+                } else {
+                    registrarFallo(e);
+                }
+            };
+            area.appendChild(obj);
         }
-        
-        generarObjetivo();
     }
 
-    function finalizarSesionFinal() {
+    function verificarLimpieza() {
+        const restantes = Array.from(document.querySelectorAll('.obj[data-target="true"]'))
+                               .filter(r => r.style.opacity !== "0");
+        if(restantes.length === 0) {
+            document.getElementById('btn-next-level').style.display = "block";
+            sonar(1000, 0.2); // Sonido de nivel completado
+        }
+    }
+
+    function registrarFallo(e) {
+        if(!gameActive) return;
+        sonar(200, 0.3, 'sawtooth');
+        vidas--; fallos++;
+        document.getElementById('txt-vidas').innerText = vidas;
+        document.body.classList.add('error-flash');
+        setTimeout(() => document.body.classList.remove('error-flash'), 200);
+        if(vidas <= 0) finalizar();
+    }
+
+    function pasarNivel() {
+        nivel++;
+        document.getElementById('txt-nivel').innerText = nivel;
+        if(nivel % 5 === 0) { vidas++; document.getElementById('txt-vidas').innerText = vidas; }
+        cargarPantalla();
+    }
+
+    function finalizar() {
         gameActive = false;
-        document.getElementById('game-area').innerHTML = "";
-        document.getElementById('resumen-texto').innerText = `Paciente: ${paciente}\nNiveles completados: ${nivel-1}\nAciertos totales: ${aciertos}`;
+        clearInterval(crono);
         document.getElementById('screen-end').style.display = 'flex';
-        enviarAExcelOficial();
+        document.getElementById('resumen').innerText = `Paciente: ${localStorage.getItem('paciente')}\nNivel Alcanzado: ${nivel}\nAciertos: ${aciertos}`;
+        enviarExcel();
     }
 
-    // --- FUNCIÓN DE EXCEL (IDÉNTICA A LA ORIGINAL) ---
-    function enviarAExcelOficial() {
+    function enviarExcel() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const form = document.createElement("form");
-        form.method = "POST";
-        form.action = url;
-        form.target = "target_frame";
-
-        const tiempoSesion = ((Date.now() - startTime) / 1000).toFixed(0) + "s";
-
+        form.method = "POST"; form.action = url; form.target = "target_frame";
         const datos = {
-            "entry.369874016": paciente,
-            "entry.1353470174": "Integración Binocular (" + profesional + ")",
-            "entry.721051298": nivel - 1,
+            "entry.369874016": localStorage.getItem('paciente'),
+            "entry.1353470174": "Integración Binocular PRO",
+            "entry.721051298": nivel,
             "entry.873272199": aciertos,
             "entry.1030094511": fallos,
-            "entry.1303309812": tiempoSesion,
+            "entry.1303309812": segs + "s",
             "entry.845098414": new Date().toISOString().split('T')[0]
         };
-
-        for (let key in datos) {
-            let input = document.createElement("input");
-            input.type = "hidden";
-            input.name = key;
-            input.value = datos[key];
-            form.appendChild(input);
+        for(let key in datos) {
+            let i = document.createElement("input"); i.type="hidden"; i.name=key; i.value=datos[key];
+            form.appendChild(i);
         }
-
-        document.body.appendChild(form);
-        form.submit();
-
-        setTimeout(() => {
-            document.getElementById('envio-status').innerText = "✅ DATOS SINCRONIZADOS CORRECTAMENTE";
-            document.getElementById('envio-status').style.color = "#10b981";
-        }, 2500);
+        document.body.appendChild(form); form.submit();
+        setTimeout(() => { document.getElementById('envio-status').innerText = "✅ REGISTRADO EN EXCEL"; document.getElementById('envio-status').style.color = "#10b981"; }, 2500);
     }
 </script>
 </body>
 </html>
+
 
 
 
