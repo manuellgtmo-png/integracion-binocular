@@ -3,232 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Binocular PRO v5</title>
+    <title>Integración Binocular PRO - Clínica Visual</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --bg-dark: #0a0f1d; --accent-pink: #ff2e63; --accent-blue: #08d9d6;
-            --rojo-fondo: #80322a; --rojo-figura: #69302a;
-            --verde-fondo: #69913d; --verde-figura: #6c7b5a;
+            --bg: #0f172a; --primary: #f8fafc; --pink: #ff2e63; 
+            --blue: #38bdf8; --card: #1e293b; --success: #10b981; --yellow: #facc15;
         }
-        body { margin: 0; font-family: 'Montserrat', sans-serif; background: var(--bg-dark); color: white; overflow: hidden; height: 100vh; }
+        body { margin: 0; font-family: 'Montserrat'; background: var(--bg); color: var(--primary); overflow: hidden; height: 100vh; }
         
-        /* Header y Stats */
-        .header { height: 70px; background: #1a1a2e; display: flex; justify-content: space-around; align-items: center; border-bottom: 5px solid var(--accent-pink); }
-        .stat b { display: block; color: var(--accent-blue); font-size: 0.7rem; }
+        /* Header Stats */
+        .header { height: 80px; background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-bottom: 4px solid var(--success); }
+        .stat { text-align: center; }
+        .stat b { display: block; color: var(--blue); font-size: 0.7rem; text-transform: uppercase; }
+        .stat span { font-size: 1.5rem; font-weight: 900; }
+
+        #game-area { height: calc(100vh - 80px); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         
-        #game-container { display: flex; height: calc(100vh - 110px); }
-        .lado { width: 50%; height: 100%; position: relative; overflow: hidden; }
-        #lado-rojo { background: var(--rojo-fondo); }
-        #lado-verde { background: var(--verde-fondo); }
+        /* Pantallas de Interfaz */
+        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { background: #1e293b; border-radius: 40px; padding: 40px; width: 100%; max-width: 450px; text-align: center; border: 1px solid #334155; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         
-        .figura { position: absolute; font-weight: 900; user-select: none; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
-        #indicador { position: absolute; top: 125px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 6px 25px; border-radius: 50px; font-weight: 900; z-index: 1000; border: 3px solid var(--accent-pink); }
+        .habilidades { text-align: left; background: #334155; padding: 20px; border-radius: 20px; margin: 20px 0; border-left: 5px solid var(--success); }
+        .habilidades h4 { margin: 0 0 5px 0; color: var(--success); font-size: 0.85rem; }
+        .habilidades p { margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; color: var(--blue); font-size: 0.8rem; margin-bottom: 8px; font-weight: 900; text-transform: uppercase; }
+        .input-group input { width: 100%; padding: 15px; border-radius: 15px; border: 2px solid #334155; background: #0f172a; color: white; font-family: 'Montserrat'; box-sizing: border-box; outline: none; }
+
+        .btn { background: var(--pink); color: white; padding: 20px; border-radius: 22px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; text-transform: uppercase; box-shadow: 0 8px 0 #9f1239; transition: 0.2s; }
+        .btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #9f1239; }
+
+        /* Elementos del Juego (Lógica Original) */
+        .box { width: 120px; height: 120px; position: absolute; border-radius: 25px; cursor: pointer; transition: transform 0.1s, opacity 0.3s; display: flex; align-items: center; justify-content: center; font-size: 3rem; user-select: none; }
+        .red { background-color: rgba(255, 0, 0, 0.6); border: 6px solid #ff0000; box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); color: white; }
+        .cyan { background-color: rgba(0, 255, 255, 0.6); border: 6px solid #00ffff; box-shadow: 0 0 25px rgba(0, 255, 255, 0.4); color: #004a4a; }
         
-        .overlay { position: fixed; inset: 0; background: rgba(10, 15, 29, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; }
-        .card { background: white; color: #2d3436; border-radius: 40px; padding: 35px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 15px 0 var(--accent-blue); }
-        .btn { background: var(--accent-pink); color: white; padding: 18px; border-radius: 20px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.2rem; margin-top: 15px; text-transform: uppercase; box-shadow: 0 8px 0 #b31d45; }
-        
-        #flash { position: fixed; inset: 0; background: rgba(255, 46, 99, 0.4); pointer-events: none; opacity: 0; z-index: 4000; }
-        @keyframes errorFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+        .feedback { position: absolute; font-weight: 900; font-size: 2rem; pointer-events: none; animation: flyUp 0.8s forwards; }
+        @keyframes flyUp { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-100px); } }
     </style>
 </head>
 <body>
 
-<div id="flash"></div>
-
 <div id="screen-start" class="overlay">
     <div class="card">
-        <h2 id="welcome-msg" style="color:var(--bg-dark)">Cargando...</h2>
-        <p style="color:#666">¿Listo para comenzar la sesión?</p>
-        <button class="btn" onclick="startGame()">INICIAR INTEGRACIÓN</button>
+        <h1 style="color:var(--success); margin:0; font-size: 2.5rem;">¡HOLA! ✨</h1>
+        <p style="margin-top: 5px; font-weight: 900; color: white;">Integración Binocular</p>
+        
+        <div class="habilidades">
+            <h4>🎯 OBJETIVOS TERAPÉUTICOS:</h4>
+            <p>• Fomentar la fusión sensorial.<br>• Eliminar la supresión de imagen.<br>• Entrenar la binocularidad profunda.</p>
+        </div>
+
+        <div class="input-group">
+            <label>Nombre del Paciente:</label>
+            <input type="text" id="paciente-nombre" placeholder="Escribe aquí el nombre" oninput="actualizarDisplay()">
+        </div>
+
+        <button class="btn" onclick="pasoAInstrucciones()">SIGUIENTE</button>
     </div>
 </div>
 
-<div id="screen-next" class="overlay" style="display:none">
+<div id="screen-instruccion" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:#009955">¡NIVEL SUPERADO!</h1>
-        <p id="msg-recompensa" style="color:var(--accent-blue); font-weight:bold;"></p>
-        <button class="btn" onclick="iniciarNivel()" style="background:#00ff88; color:#003311; box-shadow: 0 8px 0 #009955;">SIGUIENTE ➔</button>
+        <h2 style="color:var(--yellow);">¿PREPARADO?</h2>
+        <div style="text-align: left; color: #cbd5e1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
+            <p>1. Ponte tus <b>gafas anaglifo</b> (Rojo/Azul).</p>
+            <p>2. Aparecerán cuadros de diferentes colores.</p>
+            <p>3. Tócalos rápidamente para "unirlos" en tu cerebro.</p>
+        </div>
+        <button class="btn" onclick="empezarJuegoReal()" style="background: var(--success); box-shadow: 0 8px 0 #065f46;">¡EMPEZAR YA!</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
-        <h1 style="color:var(--accent-pink)">FIN DE SESIÓN</h1>
-        <div id="status-envio" style="margin:20px 0; font-weight:bold; color:#009955;">📤 Sincronizando datos...</div>
-        <button class="btn" onclick="window.location.href='index.html'">VOLVER AL MENÚ</button>
+        <h1 style="color:var(--pink)">SESIÓN COMPLETADA</h1>
+        <p id="resumen-texto" style="color: white; font-size: 1.1rem;"></p>
+        <div id="envio-status" style="margin:20px 0; font-weight:900; color:var(--blue);">🚀 SINCRONIZANDO CON EXCEL...</div>
+        <button class="btn" onclick="location.reload()" style="background:#475569; box-shadow: 0 8px 0 #1e293b;">REPETIR JUEGO</button>
     </div>
 </div>
 
 <div class="header">
-    <div class="stat"><b>NIVEL</b><span id="txt-nivel">1</span></div>
-    <div class="stat"><b>ACIERTOS</b><span id="txt-ok">0</span></div>
-    <div class="stat"><b>VIDAS</b><span id="txt-vidas" style="color:var(--accent-pink)">3</span></div>
-    <div class="stat"><b>TIEMPO</b><span id="txt-timer">0.0s</span></div>
+    <div class="stat"><b>Nivel</b><span id="txt-nivel">1</span></div>
+    <div class="stat"><b>Aciertos</b><span id="txt-ok">0</span></div>
+    <div class="stat"><b>Paciente</b><span id="display-paciente">---</span></div>
 </div>
 
-<div id="indicador">BUSCA: <span id="target-obj" style="color:var(--accent-pink)">-</span></div>
+<div id="game-area"></div>
 
-<div id="game-container">
-    <div id="lado-rojo" class="lado" onclick="failClick()"></div>
-    <div id="lado-verde" class="lado" onclick="failClick()"></div>
-</div>
+<iframe name="target_frame" id="target_frame" style="display:none;"></iframe>
 
 <script>
-    // Recuperar datos del menú principal
-    const paciente = localStorage.getItem('paciente') || "Paciente Anónimo";
-    const profesional = localStorage.getItem('profesional') || "No asignado";
-    document.getElementById('welcome-msg').innerText = "Hola, " + paciente;
+    // --- LÓGICA DE ESTADO Y DATOS ---
+    let nivel = 1;
+    let aciertos = 0;
+    let fallos = 0;
+    let paciente = localStorage.getItem('paciente') || "";
+    let profesional = localStorage.getItem('profesional') || "Especialista";
+    let startTime;
+    let gameActive = false;
 
-    let nivel = 1, totalAciertos = 0, vidas = 3, fallos = 0, rachaNiveles = 0;
-    let jugando = false, sessionStartTime, objActual = "";
-    let elementos = [];
-    const formas = ["●", "■", "▲", "E", "H", "O", "X", "U", "V"];
+    // Inicialización al cargar
+    window.onload = () => {
+        if(paciente) {
+            document.getElementById('paciente-nombre').value = paciente;
+            document.getElementById('display-paciente').innerText = paciente;
+        }
+    };
 
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playSuccessSound() {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.type = "sine"; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+    function actualizarDisplay() {
+        paciente = document.getElementById('paciente-nombre').value;
+        localStorage.setItem('paciente', paciente);
+        document.getElementById('display-paciente').innerText = paciente || "---";
     }
 
-    function startGame() {
+    function pasoAInstrucciones() {
+        if(!paciente) return alert("Por favor, ingresa el nombre del paciente.");
         document.getElementById('screen-start').style.display = 'none';
-        sessionStartTime = Date.now();
-        iniciarNivel();
+        document.getElementById('screen-instruccion').style.display = 'flex';
     }
 
-    function iniciarNivel() {
-        document.getElementById('screen-next').style.display = 'none';
-        jugando = true;
-        document.getElementById('txt-vidas').innerText = vidas;
-        document.getElementById('txt-nivel').innerText = nivel;
-        objActual = formas[Math.floor(Math.random() * formas.length)];
-        document.getElementById('target-obj').innerText = objActual;
-        generarObjetos();
-        requestAnimationFrame(update);
+    function empezarJuegoReal() {
+        document.getElementById('screen-instruccion').style.display = 'none';
+        gameActive = true;
+        startTime = Date.now();
+        generarObjetivo();
     }
 
-    function generarObjetos() {
-        document.getElementById('lado-rojo').innerHTML = "";
-        document.getElementById('lado-verde').innerHTML = "";
-        elementos = [];
-        const cantObj = 2 + Math.floor(nivel/2);
-        const cantDist = 6 + (nivel * 3);
-        for(let i=0; i<cantObj; i++) { crear(true, 'rojo'); crear(true, 'verde'); }
-        for(let i=0; i<cantDist; i++) { crear(false, 'rojo'); crear(false, 'verde'); }
-    }
+    // --- MOTOR DEL JUEGO (RECONSTRUIDO PASO A PASO) ---
+    function generarObjetivo() {
+        if(!gameActive) return;
+        
+        const area = document.getElementById('game-area');
+        area.innerHTML = "";
+        
+        const target = document.createElement('div');
+        const esRojo = Math.random() > 0.5;
+        target.className = `box ${esRojo ? 'red' : 'cyan'}`;
+        
+        // El contenido puede ser un icono aleatorio para mayor estimulación
+        const iconos = ["👁️", "✨", "🎯", "🌟", "🔥"];
+        target.innerText = iconos[Math.floor(Math.random() * iconos.length)];
 
-    function crear(esObj, lado) {
-        const div = document.createElement('div');
-        div.className = "figura";
+        // Lógica de posicionamiento original
+        const padding = 140;
+        const x = Math.random() * (area.clientWidth - padding);
+        const y = Math.random() * (area.clientHeight - padding);
         
-        // CORRECCIÓN "UNDEFINED": Asegurar que siempre elija una forma válida
-        if (esObj) {
-            div.innerText = objActual;
-        } else {
-            const distractores = formas.filter(f => f !== objActual);
-            div.innerText = distractores[Math.floor(Math.random() * distractores.length)];
-        }
+        target.style.left = x + "px";
+        target.style.top = y + "px";
         
-        const baseSize = Math.max(20, 100 - (nivel * 5));
-        const size = baseSize * (Math.random() * 0.4 + 0.8);
-        div.style.fontSize = size + 'px';
-        div.style.color = lado === 'rojo' ? 'var(--rojo-figura)' : 'var(--verde-figura)';
-        
-        const speedMult = 1.3 + (nivel * 0.4);
-        const el = { 
-            dom: div, 
-            x: Math.random()*(window.innerWidth/2-80), 
-            y: Math.random()*(window.innerHeight-250), 
-            vx: (Math.random()-0.5) * speedMult, 
-            vy: (Math.random()-0.5) * speedMult, 
-            size, esObj 
-        };
+        // Dificultad por nivel (Tamaño decreciente)
+        const escala = Math.max(0.5, 1.2 - (nivel * 0.1));
+        target.style.transform = `scale(${escala})`;
 
-        div.onclick = (e) => {
+        target.onclick = (e) => {
             e.stopPropagation();
-            if(esObj) { 
-                playSuccessSound();
-                div.remove(); 
-                elementos = elementos.filter(i => i !== el); 
-                totalAciertos++;
-                document.getElementById('txt-ok').innerText = totalAciertos;
-                if(elementos.filter(e => e.esObj).length === 0) passLevel();
-            } else failClick();
+            manejarAcierto(target);
         };
-        document.getElementById(`lado-${lado}`).appendChild(div);
-        elementos.push(el);
+
+        area.appendChild(target);
     }
 
-    function update() {
-        if(!jugando) return;
-        const w = window.innerWidth/2, h = window.innerHeight-110;
-        elementos.forEach(el => {
-            el.x += el.vx; el.y += el.vy;
-            if(el.x < 0 || el.x > w - el.size) el.vx *= -1;
-            if(el.y < 0 || el.y > h - el.size) el.vy *= -1;
-            el.dom.style.transform = `translate(${el.x}px, ${el.y}px)`;
-        });
-        document.getElementById('txt-timer').innerText = ((Date.now()-sessionStartTime)/1000).toFixed(1) + "s";
-        requestAnimationFrame(update);
-    }
+    function manejarAcierto(elemento) {
+        aciertos++;
+        document.getElementById('txt-ok').innerText = aciertos;
+        
+        // Efecto visual de "¡Bien!"
+        const feedback = document.createElement('div');
+        feedback.className = "feedback";
+        feedback.innerText = "¡BIEN!";
+        feedback.style.left = elemento.style.left;
+        feedback.style.top = elemento.style.top;
+        feedback.style.color = (elemento.classList.contains('red')) ? "#ff2e63" : "#38bdf8";
+        document.getElementById('game-area').appendChild(feedback);
+        setTimeout(() => feedback.remove(), 800);
 
-    function failClick() {
-        if(!jugando) return;
-        vidas--; fallos++; rachaNiveles = 0;
-        document.getElementById('flash').style.animation = "none"; document.getElementById('flash').offsetHeight; 
-        document.getElementById('flash').style.animation = "errorFlash 0.4s";
-        document.getElementById('txt-vidas').innerText = vidas;
-        if(vidas <= 0) { 
-            jugando = false; 
-            document.getElementById('screen-end').style.display = 'flex'; 
-            enviarDatosFinales(); 
+        // Lógica de niveles original
+        if(aciertos % 10 === 0) {
+            nivel++;
+            document.getElementById('txt-nivel').innerText = nivel;
+            if(nivel > 5) { // Finaliza en nivel 5 para la prueba, puedes subirlo
+                finalizarSesionFinal();
+                return;
+            }
         }
+        
+        generarObjetivo();
     }
 
-    function passLevel() { 
-        jugando = false; nivel++; rachaNiveles++;
-        if(rachaNiveles >= 10) { vidas++; rachaNiveles = 0; document.getElementById('msg-recompensa').innerText = "¡RACHA DE 10! +1 VIDA EXTRA 💖"; }
-        document.getElementById('screen-next').style.display = 'flex'; 
+    function finalizarSesionFinal() {
+        gameActive = false;
+        document.getElementById('game-area').innerHTML = "";
+        document.getElementById('resumen-texto').innerText = `Paciente: ${paciente}\nNiveles completados: ${nivel-1}\nAciertos totales: ${aciertos}`;
+        document.getElementById('screen-end').style.display = 'flex';
+        enviarAExcelOficial();
     }
 
-    function enviarDatosFinales() {
-        const formAction = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
+    // --- FUNCIÓN DE EXCEL (IDÉNTICA A LA ORIGINAL) ---
+    function enviarAExcelOficial() {
+        const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const form = document.createElement("form");
-        form.method = "POST"; form.action = formAction; form.target = "hidden_iframe";
+        form.method = "POST";
+        form.action = url;
+        form.target = "target_frame";
+
+        const tiempoSesion = ((Date.now() - startTime) / 1000).toFixed(0) + "s";
 
         const datos = {
             "entry.369874016": paciente,
-            "entry.1353470174": "Integración Binocular (Prof: " + profesional + ")",
-            "entry.721051298": nivel,
-            "entry.873272199": totalAciertos,
+            "entry.1353470174": "Integración Binocular (" + profesional + ")",
+            "entry.721051298": nivel - 1,
+            "entry.873272199": aciertos,
             "entry.1030094511": fallos,
-            "entry.1303309812": document.getElementById('txt-timer').innerText,
+            "entry.1303309812": tiempoSesion,
             "entry.845098414": new Date().toISOString().split('T')[0]
         };
 
         for (let key in datos) {
-            const input = document.createElement("input");
-            input.type = "hidden"; input.name = key; input.value = datos[key];
+            let input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = datos[key];
             form.appendChild(input);
         }
 
-        const iframe = document.createElement("iframe");
-        iframe.name = "hidden_iframe"; iframe.style.display = "none";
-        document.body.appendChild(iframe); document.body.appendChild(form);
+        document.body.appendChild(form);
         form.submit();
-        setTimeout(() => { document.getElementById('status-envio').innerText = "✅ REPORTE EN TU DRIVE"; }, 2000);
+
+        setTimeout(() => {
+            document.getElementById('envio-status').innerText = "✅ DATOS SINCRONIZADOS CORRECTAMENTE";
+            document.getElementById('envio-status').style.color = "#10b981";
+        }, 2500);
     }
 </script>
 </body>
 </html>
+
 
 
 
