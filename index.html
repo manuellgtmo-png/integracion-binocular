@@ -9,7 +9,6 @@
         :root { 
             --bg: #0f172a; --primary: #f8fafc; --pink: #ff2e63; 
             --blue: #38bdf8; --card: #1e293b; --success: #10b981; --yellow: #facc15;
-            /* COLORES CANVA EXACTOS */
             --rojo-bg: #80322a; --rojo-fig: #69302a;
             --verde-bg: #69913d; --verde-fig: #6c7b5a;
         }
@@ -59,6 +58,7 @@
 <div id="screen-how" class="overlay" style="display:none">
     <div class="card">
         <h2 style="color:var(--yellow);">INSTRUCCIONES 🚀</h2>
+        <p id="saludo-bienvenida" style="color:white; font-weight:bold;"></p>
         <div style="text-align: left; color: #cbd5e1; font-size: 0.95rem; margin: 20px 0;">
             <p>1. Usa tus <b>gafas anaglifo</b>.</p>
             <p>2. Atrapa solo el objetivo indicado arriba.</p>
@@ -106,21 +106,30 @@
     let crono, gameActive = false, objetivoActual = "";
     let animIds = [];
     
-    // FIGURAS AÑADIDAS: Cuadrado, Triángulo, Corazón, Estrella, O
+    // El nombre se toma del portal automáticamente
+    let nombreFinal = localStorage.getItem('pacienteActual') || "";
+
+    // Lógica de inicio automático
+    window.onload = () => {
+        if(nombreFinal) {
+            document.getElementById('screen-start').style.display = 'none';
+            document.getElementById('screen-how').style.display = 'flex';
+            document.getElementById('saludo-bienvenida').innerText = "¡Hola " + nombreFinal + "!";
+        }
+    }
+
     const items = { 
-        "Cuadrado": "■", 
-        "Triángulo": "▲", 
-        "Corazón": "❤", 
-        "Estrella": "★", 
-        "Letra O": "O",
-        "Letra U": "U"
+        "Cuadrado": "■", "Triángulo": "▲", "Corazón": "❤", "Estrella": "★", "Letra O": "O", "Letra U": "U"
     };
 
     function irAInstrucciones() {
-        if(!document.getElementById('paciente-nombre').value) return alert("Ingresa el nombre");
-        localStorage.setItem('paciente', document.getElementById('paciente-nombre').value);
+        let inputNom = document.getElementById('paciente-nombre').value;
+        if(!inputNom) return alert("Ingresa el nombre");
+        nombreFinal = inputNom;
+        localStorage.setItem('pacienteActual', nombreFinal);
         document.getElementById('screen-start').style.display = 'none';
         document.getElementById('screen-how').style.display = 'flex';
+        document.getElementById('saludo-bienvenida').innerText = "¡Hola " + nombreFinal + "!";
     }
 
     function iniciarJuegoReal() {
@@ -142,15 +151,12 @@
         objetivoActual = items[randomKey];
         document.getElementById('instruccion-fija').innerText = `TOCA TODOS LOS: ${randomKey}`;
 
-        // Aumento de objetos por nivel
         let totalObj = 10 + (nivel * 2);
 
         for(let i=0; i<totalObj; i++) {
             const obj = document.createElement('div');
             const esRojo = Math.random() > 0.5;
             const simbolo = items[keys[Math.floor(Math.random() * keys.length)]];
-            
-            // Tamaños aleatorios dentro del nivel para complicar la búsqueda
             const tamañoBase = Math.random() > 0.5 ? 70 : 45;
             const tamañoFinal = Math.max(30, tamañoBase - (nivel * 1.5));
             
@@ -162,8 +168,6 @@
             
             let posX = Math.random() * (area.clientWidth - tamañoFinal);
             let posY = Math.random() * (area.clientHeight - tamañoFinal);
-            
-            // VELOCIDAD INFINITA: Crece linealmente con el nivel
             let velX = (Math.random() - 0.5) * (4 + nivel * 1.1);
             let velY = (Math.random() - 0.5) * (4 + nivel * 1.1);
 
@@ -208,9 +212,7 @@
 
     function registrarFallo(e) {
         if(!gameActive) return;
-        if(e.target.id === "game-area") {
-            registrarFalloManual();
-        }
+        if(e.target.id === "game-area") registrarFalloManual();
     }
 
     function revisarFinNivel() {
@@ -224,11 +226,7 @@
     function siguienteNivelAccion() {
         nivel++;
         document.getElementById('txt-nivel').innerText = nivel;
-        if(nivel % 5 === 0) { 
-            vidas++; 
-            document.getElementById('txt-vidas').innerText = vidas;
-            sonar(1500, 0.3);
-        }
+        if(nivel % 5 === 0) { vidas++; document.getElementById('txt-vidas').innerText = vidas; sonar(1500, 0.3); }
         generarEscena();
     }
 
@@ -236,7 +234,7 @@
         gameActive = false;
         clearInterval(crono);
         document.getElementById('screen-end').style.display = 'flex';
-        document.getElementById('resumen').innerText = `Paciente: ${localStorage.getItem('paciente')}\nNivel: ${nivel} | Aciertos: ${aciertos}`;
+        document.getElementById('resumen').innerText = `Nivel: ${nivel} | Aciertos: ${aciertos}`;
         enviarExcel();
     }
 
@@ -244,23 +242,29 @@
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const form = document.createElement("form");
         form.method = "POST"; form.action = url; form.target = "target_frame";
+        
         const datos = {
-            "entry.369874016": localStorage.getItem('paciente'),
+            "entry.369874016": nombreFinal,
             "entry.1353470174": "Integración Binocular Dinámica PRO",
-            "entry.721051298": nivel, "entry.873272199": aciertos,
-            "entry.1030094511": fallos, "entry.1303309812": segs + "s",
+            "entry.721051298": nivel, 
+            "entry.873272199": aciertos,
+            "entry.1030094511": fallos, 
+            "entry.1303309812": segs + "s",
             "entry.845098414": new Date().toISOString().split('T')[0]
         };
+
         for(let key in datos) {
             let i = document.createElement("input"); i.type="hidden"; i.name=key; i.value=datos[key];
             form.appendChild(i);
         }
-        document.body.appendChild(form); form.submit();
+        document.body.appendChild(form);
+        form.submit();
         setTimeout(() => { document.getElementById('envio-status').innerText = "✅ EXCEL ACTUALIZADO"; }, 2000);
     }
 </script>
 </body>
 </html>
+
 
 
 
