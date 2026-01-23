@@ -106,10 +106,8 @@
     let crono, gameActive = false, objetivoActual = "";
     let animIds = [];
     
-    // El nombre se toma del portal automáticamente
     let nombreFinal = localStorage.getItem('pacienteActual') || "";
 
-    // Lógica de inicio automático
     window.onload = () => {
         if(nombreFinal) {
             document.getElementById('screen-start').style.display = 'none';
@@ -156,7 +154,15 @@
         for(let i=0; i<totalObj; i++) {
             const obj = document.createElement('div');
             const esRojo = Math.random() > 0.5;
-            const simbolo = items[keys[Math.floor(Math.random() * keys.length)]];
+            
+            // SEGURO DE APARICIÓN: El primer objeto (i=0) siempre será el objetivo
+            let simbolo;
+            if (i === 0) {
+                simbolo = objetivoActual;
+            } else {
+                simbolo = items[keys[Math.floor(Math.random() * keys.length)]];
+            }
+
             const tamañoBase = Math.random() > 0.5 ? 70 : 45;
             const tamañoFinal = Math.max(30, tamañoBase - (nivel * 1.5));
             
@@ -245,7 +251,7 @@
         
         const datos = {
             "entry.369874016": nombreFinal,
-            "entry.1353470174": "Integración Binocular Dinámica PRO",
+            "entry.1353470174": "Integración Binocular PRO",
             "entry.721051298": nivel, 
             "entry.873272199": aciertos,
             "entry.1030094511": fallos, 
@@ -264,6 +270,7 @@
 </script>
 </body>
 </html>
+
 
 
 
