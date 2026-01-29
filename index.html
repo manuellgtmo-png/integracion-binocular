@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integración Binocular PRO - Niveles Infinitos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Integración Binocular PRO - Adaptable</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -12,33 +12,75 @@
             --rojo-bg: #80322a; --rojo-fig: #69302a;
             --verde-bg: #69913d; --verde-fig: #6c7b5a;
         }
-        body { margin: 0; font-family: 'Montserrat'; background: var(--bg); color: var(--primary); overflow: hidden; height: 100vh; }
+        
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: 'Montserrat'; background: var(--bg); color: var(--primary); 
+            overflow: hidden; display: flex; flex-direction: column;
+            touch-action: none; user-select: none;
+        }
+
         body.error-flash { background: #450a0a !important; transition: 0.1s; }
 
-        .header { height: 80px; background: #1e293b; display: flex; justify-content: space-around; align-items: center; border-bottom: 4px solid var(--verde-bg); }
+        .header { 
+            height: 70px; min-height: 70px; background: #1e293b; 
+            display: flex; justify-content: space-around; align-items: center; 
+            border-bottom: 4px solid var(--verde-bg); z-index: 100;
+        }
         .stat { text-align: center; }
-        .stat b { display: block; color: var(--blue); font-size: 0.7rem; text-transform: uppercase; }
-        .stat span { font-size: 1.3rem; font-weight: 900; }
+        .stat b { display: block; color: var(--blue); font-size: 0.6rem; text-transform: uppercase; }
+        .stat span { font-size: 1.1rem; font-weight: 900; }
 
-        #instruccion-fija { background: #1e293b; padding: 15px; text-align: center; font-weight: 900; font-size: 1.4rem; color: var(--yellow); border-bottom: 2px solid #334155; text-transform: uppercase; }
+        #instruccion-fija { 
+            background: #1e293b; padding: 12px; text-align: center; 
+            font-weight: 900; font-size: clamp(1rem, 4vw, 1.3rem); 
+            color: var(--yellow); border-bottom: 2px solid #334155; 
+            text-transform: uppercase; z-index: 90;
+        }
 
-        #game-area { height: calc(100vh - 145px); position: relative; overflow: hidden; background: #0f172a; }
+        #game-area { 
+            flex-grow: 1; position: relative; overflow: hidden; 
+            background: #0f172a; width: 100%;
+        }
         
-        .obj { position: absolute; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 900; cursor: pointer; user-select: none; }
+        .obj { 
+            position: absolute; border-radius: 12px; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 900; cursor: pointer;
+            /* Área de toque expandida para dedos */
+            box-sizing: content-box; padding: 10px; margin: -10px;
+        }
         .rojo { background: var(--rojo-bg); color: var(--rojo-fig); }
         .verde { background: var(--verde-bg); color: var(--verde-fig); }
 
         .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { background: #1e293b; border-radius: 40px; padding: 40px; width: 100%; max-width: 480px; text-align: center; border: 1px solid #334155; }
+        .card { background: #1e293b; border-radius: 35px; padding: 30px; width: 90%; max-width: 450px; text-align: center; border: 1px solid #334155; }
         
-        .habilidades { text-align: left; background: #334155; padding: 20px; border-radius: 20px; margin: 20px 0; border-left: 5px solid var(--success); }
-        .habilidades h4 { margin: 0 0 5px 0; color: var(--success); font-size: 0.85rem; }
-        .habilidades p { margin: 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.4; }
+        .habilidades { text-align: left; background: #334155; padding: 15px; border-radius: 20px; margin: 15px 0; border-left: 5px solid var(--success); }
+        .habilidades h4 { margin: 0 0 5px 0; color: var(--success); font-size: 0.8rem; }
+        .habilidades p { margin: 0; font-size: 0.8rem; color: #cbd5e1; line-height: 1.4; }
 
-        .btn { background: var(--pink); color: white; padding: 20px; border-radius: 22px; font-weight: 900; border: none; cursor: pointer; width: 100%; font-size: 1.1rem; text-transform: uppercase; box-shadow: 0 8px 0 #9f1239; margin-top: 10px; }
-        #btn-next { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: auto; padding: 15px 60px; background: var(--success); box-shadow: 0 8px 0 #065f46; display: none; z-index: 3000; }
+        .btn { 
+            background: var(--pink); color: white; padding: 18px; 
+            border-radius: 22px; font-weight: 900; border: none; 
+            cursor: pointer; width: 100%; font-size: 1.1rem; 
+            text-transform: uppercase; box-shadow: 0 6px 0 #9f1239; 
+            margin-top: 10px;
+        }
         
-        input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #334155; background: #0f172a; color: white; margin-bottom: 15px; text-align: center; font-family: 'Montserrat'; font-size: 1rem; }
+        #btn-next { 
+            position: absolute; bottom: 30px; left: 50%; 
+            transform: translateX(-50%); width: auto; min-width: 200px;
+            background: var(--success); box-shadow: 0 6px 0 #065f46; 
+            display: none; z-index: 3000; 
+        }
+        
+        input { 
+            width: 100%; padding: 15px; border-radius: 15px; 
+            border: 2px solid #334155; background: #0f172a; 
+            color: white; margin-bottom: 15px; text-align: center; 
+            font-family: 'Montserrat'; font-size: 1rem; box-sizing: border-box;
+        }
     </style>
 </head>
 <body onclick="registrarFallo(event)">
@@ -59,13 +101,12 @@
     <div class="card">
         <h2 style="color:var(--yellow);">INSTRUCCIONES 🚀</h2>
         <p id="saludo-bienvenida" style="color:white; font-weight:bold;"></p>
-        <div style="text-align: left; color: #cbd5e1; font-size: 0.95rem; margin: 20px 0;">
-            <p>1. Usa tus <b>gafas anaglifo</b>.</p>
-            <p>2. Atrapa solo el objetivo indicado arriba.</p>
-            <p>3. El nivel aumenta <b>infinitamente</b>.</p>
-            <p>4. ¡A más nivel, más velocidad!</p>
+        <div style="text-align: left; color: #cbd5e1; font-size: 0.9rem; margin: 15px 0;">
+            <p>1. Usa tus <b>gafas anaglifo</b> (rojo/verde).</p>
+            <p>2. Atrapa solo el objetivo indicado.</p>
+            <p>3. ¡Cuidado con el fondo! No toques el vacío.</p>
         </div>
-        <button class="btn" onclick="iniciarJuegoReal()" style="background: var(--success); box-shadow: 0 8px 0 #065f46;">¡EMPEZAR!</button>
+        <button class="btn" onclick="iniciarJuegoReal()" style="background: var(--success); box-shadow: 0 6px 0 #065f46;">¡EMPEZAR!</button>
     </div>
 </div>
 
@@ -74,7 +115,7 @@
         <h1 style="color:var(--pink)">SESIÓN TERMINADA</h1>
         <p id="resumen" style="color:white; font-size: 1.2rem;"></p>
         <div id="envio-status" style="margin:20px 0; font-weight:900; color:var(--blue);">🚀 SINCRONIZANDO EXCEL...</div>
-        <button class="btn" onclick="location.reload()" style="background:#475569; box-shadow: 0 8px 0 #1e293b;">REPETIR JUEGO</button>
+        <button class="btn" onclick="location.reload()" style="background:#475569; box-shadow: 0 6px 0 #1e293b;">REPETIR JUEGO</button>
     </div>
 </div>
 
@@ -85,14 +126,21 @@
 </div>
 
 <div id="instruccion-fija">BUSCANDO...</div>
+
 <div id="game-area"></div>
+
 <button id="btn-next" class="btn" onclick="siguienteNivelAccion()">SIGUIENTE NIVEL ➜</button>
 
 <iframe name="target_frame" style="display:none;"></iframe>
 
 <script>
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    let audioCtx;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
     function sonar(f, d, t='sine') {
+        if (!audioCtx) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
         o.type = t; o.frequency.setValueAtTime(f, audioCtx.currentTime);
@@ -105,7 +153,6 @@
     let nivel = 1, aciertos = 0, fallos = 0, vidas = 2, segs = 0;
     let crono, gameActive = false, objetivoActual = "";
     let animIds = [];
-    
     let nombreFinal = localStorage.getItem('pacienteActual') || "";
 
     window.onload = () => {
@@ -121,6 +168,7 @@
     };
 
     function irAInstrucciones() {
+        initAudio();
         let inputNom = document.getElementById('paciente-nombre').value;
         if(!inputNom) return alert("Ingresa el nombre");
         nombreFinal = inputNom;
@@ -131,17 +179,24 @@
     }
 
     function iniciarJuegoReal() {
+        initAudio();
         document.getElementById('screen-how').style.display = 'none';
         gameActive = true;
-        crono = setInterval(() => { segs++; document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); }, 1000);
+        crono = setInterval(() => { 
+            segs++; 
+            document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); 
+        }, 1000);
         generarEscena();
     }
 
     function generarEscena() {
         const area = document.getElementById('game-area');
         area.innerHTML = "";
+        
+        // Limpiar animaciones previas de forma segura
         animIds.forEach(id => cancelAnimationFrame(id));
         animIds = [];
+        
         document.getElementById('btn-next').style.display = "none";
         
         const keys = Object.keys(items);
@@ -149,42 +204,49 @@
         objetivoActual = items[randomKey];
         document.getElementById('instruccion-fija').innerText = `TOCA TODOS LOS: ${randomKey}`;
 
+        // LÓGICA DE CANTIDAD (Mantenida)
         let totalObj = 10 + (nivel * 2);
 
         for(let i=0; i<totalObj; i++) {
             const obj = document.createElement('div');
             const esRojo = Math.random() > 0.5;
             
-            // SEGURO DE APARICIÓN: El primer objeto (i=0) siempre será el objetivo
-            let simbolo;
-            if (i === 0) {
-                simbolo = objetivoActual;
-            } else {
-                simbolo = items[keys[Math.floor(Math.random() * keys.length)]];
-            }
+            let simbolo = (i === 0) ? objetivoActual : items[keys[Math.floor(Math.random() * keys.length)]];
 
+            // LÓGICA DE TAMAÑO (Mantenida)
             const tamañoBase = Math.random() > 0.5 ? 70 : 45;
-            const tamañoFinal = Math.max(30, tamañoBase - (nivel * 1.5));
+            const tamañoFinal = Math.max(35, tamañoBase - (nivel * 1.5));
             
             obj.className = `obj ${esRojo ? 'rojo' : 'verde'}`;
             obj.innerText = simbolo;
             obj.style.width = tamañoFinal + "px";
             obj.style.height = tamañoFinal + "px";
-            obj.style.fontSize = (tamañoFinal * 0.6) + "px";
+            obj.style.fontSize = (tamañoFinal * 0.7) + "px";
             
+            // Posicionamiento inicial seguro
             let posX = Math.random() * (area.clientWidth - tamañoFinal);
             let posY = Math.random() * (area.clientHeight - tamañoFinal);
-            let velX = (Math.random() - 0.5) * (4 + nivel * 1.1);
-            let velY = (Math.random() - 0.5) * (4 + nivel * 1.1);
+            
+            // LÓGICA DE VELOCIDAD (Mantenida)
+            let velX = (Math.random() - 0.5) * (3 + nivel * 0.8);
+            let velY = (Math.random() - 0.5) * (3 + nivel * 0.8);
 
             function mover() {
                 if(!gameActive || obj.style.opacity === "0") return;
+                
                 posX += velX; posY += velY;
-                if(posX <= 0 || posX >= area.clientWidth - tamañoFinal) velX *= -1;
-                if(posY <= 0 || posY >= area.clientHeight - tamañoFinal) velY *= -1;
+
+                // Colisión con bordes del área real
+                if(posX <= 0) { posX = 0; velX *= -1; }
+                if(posX >= area.clientWidth - tamañoFinal) { posX = area.clientWidth - tamañoFinal; velX *= -1; }
+                if(posY <= 0) { posY = 0; velY *= -1; }
+                if(posY >= area.clientHeight - tamañoFinal) { posY = area.clientHeight - tamañoFinal; velY *= -1; }
+
                 obj.style.left = posX + "px";
                 obj.style.top = posY + "px";
-                animIds.push(requestAnimationFrame(mover));
+                
+                let id = requestAnimationFrame(mover);
+                animIds.push(id);
             }
             mover();
 
@@ -208,21 +270,23 @@
 
     function registrarFalloManual() {
         if(!gameActive) return;
-        sonar(200, 0.3, 'sawtooth');
+        sonar(180, 0.3, 'sawtooth');
         vidas--; fallos++;
         document.getElementById('txt-vidas').innerText = vidas;
         document.body.classList.add('error-flash');
-        setTimeout(() => document.body.classList.remove('error-flash'), 150);
+        setTimeout(() => document.body.classList.remove('error-flash'), 100);
         if(vidas <= 0) finalizarPartida();
     }
 
     function registrarFallo(e) {
         if(!gameActive) return;
+        // Solo falla si toca el fondo del área de juego
         if(e.target.id === "game-area") registrarFalloManual();
     }
 
     function revisarFinNivel() {
-        const restantes = Array.from(document.querySelectorAll('.obj[data-target="true"]')).filter(r => r.style.opacity !== "0");
+        const restantes = Array.from(document.querySelectorAll('.obj[data-target="true"]'))
+                               .filter(r => r.style.opacity !== "0");
         if(restantes.length === 0) {
             document.getElementById('btn-next').style.display = "block";
             sonar(1100, 0.2);
@@ -232,13 +296,18 @@
     function siguienteNivelAccion() {
         nivel++;
         document.getElementById('txt-nivel').innerText = nivel;
-        if(nivel % 5 === 0) { vidas++; document.getElementById('txt-vidas').innerText = vidas; sonar(1500, 0.3); }
+        if(nivel % 5 === 0) { 
+            vidas++; 
+            document.getElementById('txt-vidas').innerText = vidas; 
+            sonar(1500, 0.3); 
+        }
         generarEscena();
     }
 
     function finalizarPartida() {
         gameActive = false;
         clearInterval(crono);
+        animIds.forEach(id => cancelAnimationFrame(id));
         document.getElementById('screen-end').style.display = 'flex';
         document.getElementById('resumen').innerText = `Nivel: ${nivel} | Aciertos: ${aciertos}`;
         enviarExcel();
@@ -265,11 +334,12 @@
         }
         document.body.appendChild(form);
         form.submit();
-        setTimeout(() => { document.getElementById('envio-status').innerText = "✅ EXCEL ACTUALIZADO"; }, 2000);
+        setTimeout(() => { document.getElementById('envio-status').innerText = "✅ EXCEL ACTUALIZADO"; }, 2500);
     }
 </script>
 </body>
 </html>
+
 
 
 
