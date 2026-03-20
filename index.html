@@ -40,6 +40,20 @@
         .stat { text-align: center; }
         .stat b { display: block; color: var(--blue); font-size: 0.75rem; text-transform: uppercase; }
         .stat span { font-size: 1.8rem; font-weight: 900; }
+        /* Efecto de degradado para el tiempo */
+        #txt-cron {
+            background: linear-gradient(135deg, var(--yellow), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        /* Contenedor para las vidas (corazones) */
+        #txt-vidas {
+            display: flex;
+            gap: 5px;
+            font-size: 1.6rem;
+        }
+        #txt-vidas .corazon { color: var(--pink); transition: color 0.3s; }
+        #txt-vidas .corazon.perdido { color: #475569; }
 
         #instruccion-fija { 
             background: #1e293b; padding: 12px; text-align: center; 
@@ -85,7 +99,7 @@
         }
         .btn-principal:active { transform: translateY(4px); box-shadow: 0 2px 0 #065f46; }
 
-        /* EL BOTÓN "VOLVER AL MENÚ" EN LA INTRO */
+        /* EL BOTÓN "VOLVER AL MENÚ PRINCIPAL" EN LA INTRO */
         .btn-menu-principal {
             display: inline-block; color: #94a3b8; font-size: 0.9rem;
             text-decoration: none; font-weight: 700; padding: 10px;
@@ -120,7 +134,7 @@
         <input type="text" id="paciente-nombre" placeholder="Escribe tu nombre aquí">
         <button class="btn-principal" onclick="irAInstrucciones()">¡EMPEZAR SESIÓN! ✨</button>
         
-        <a href="https://manuellgtmo-png.github.io/Portal-de-juegos-de-terapia-visual/" class="btn-menu-principal">🏠 Volver al Menú Principal</a>
+        <a href="https://manuellgtmo-png.github.io/Portal-de-juegos-de-terapia-visual/" class="btn-menu-principal">🏠 VOLVER AL MENÚ PRINCIPAL</a>
     </div>
 </div>
 
@@ -150,8 +164,7 @@
     <button onclick="location.reload()" class="btn-salir-juego">⬅ SALIR AL INICIO</button>
     <div class="stats-group">
         <div class="stat"><b>Nivel</b><span id="txt-nivel">1</span></div>
-        <div class="stat"><b>Vidas</b><span id="txt-vidas" style="color:var(--pink)">2</span></div>
-        <div class="stat"><b>Tiempo</b><span id="txt-cron">00:00</span></div>
+        <div class="stat"><b>Vidas</b><div id="txt-vidas">❤️</div></div> <div class="stat"><b>Tiempo</b><span id="txt-cron">00:00</span></div>
     </div>
 </div>
 
@@ -175,7 +188,7 @@
         o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    let nivel = 1, aciertos = 0, fallos = 0, vidas = 2, segs = 0;
+    let nivel = 1, aciertos = 0, fallos = 0, vidas = 3, segs = 0; // 3 vidas para los corazones
     let crono, gameActive = false, objetivoActual = "";
     let animIds = [];
     let nombreFinal = localStorage.getItem('pacienteActual') || "";
@@ -209,7 +222,21 @@
             segs++; 
             document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); 
         }, 1000);
+        actualizarCorazones(); // Inicializar corazones
         generarEscena();
+    }
+
+    // Función para actualizar la visualización de los corazones
+    function actualizarCorazones() {
+        const txtVidas = document.getElementById('txt-vidas');
+        txtVidas.innerHTML = "";
+        for (let i = 1; i <= 3; i++) {
+            const corazon = document.createElement('span');
+            corazon.className = 'corazon';
+            corazon.innerText = '❤️';
+            if (i > vidas) { corazon.classList.add('perdido'); corazon.innerText = '🖤'; } // Gris si se perdió
+            txtVidas.appendChild(corazon);
+        }
     }
 
     function generarEscena() {
@@ -221,7 +248,8 @@
         const keys = Object.keys(items);
         const randomKey = keys[Math.floor(Math.random() * keys.length)];
         objetivoActual = items[randomKey];
-        document.getElementById('instruccion-fija').innerText = `Busca el: ${randomKey}`;
+        // En lugar de texto, mostramos la figura real
+        document.getElementById('instruccion-fija').innerText = `Busca el: ${objetivoActual}`; 
 
         let totalObj = 10 + (nivel * 2);
         for(let i=0; i<totalObj; i++) {
@@ -264,7 +292,7 @@
         if(!gameActive) return;
         sonar(180, 0.3, 'sawtooth');
         vidas--; fallos++;
-        document.getElementById('txt-vidas').innerText = vidas;
+        actualizarCorazones(); // Actualizar corazones al fallar
         document.body.classList.add('error-flash');
         setTimeout(() => document.body.classList.remove('error-flash'), 100);
         if(vidas <= 0) finalizarPartida();
@@ -286,7 +314,7 @@
     function siguienteNivelAccion() {
         nivel++;
         document.getElementById('txt-nivel').innerText = nivel;
-        if(nivel % 5 === 0) { vidas++; document.getElementById('txt-vidas').innerText = vidas; sonar(1500, 0.3); }
+        if(nivel % 5 === 0) {vidas++; if(vidas > 3) vidas=3; actualizarCorazones(); sonar(1500, 0.3); } // Recuperar vida, máx 3
         generarEscena();
     }
 
