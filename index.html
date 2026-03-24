@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Integración Binocular PRO - Versión Final</title>
+    <title>Integración Binocular PRO</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -22,9 +22,9 @@
 
         body.error-flash { background: #450a0a !important; transition: 0.1s; }
 
-        /* HEADER SUPER GRANDE */
+        /* HEADER */
         .header { 
-            height: 110px; min-height: 110px; background: #1e293b; 
+            height: 90px; min-height: 90px; background: #1e293b; 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 0 25px; border-bottom: 5px solid var(--success); z-index: 100;
         }
@@ -32,29 +32,29 @@
         .btn-salir-juego {
             background: rgba(255, 255, 255, 0.1);
             color: white; border: 2px solid rgba(255,255,255,0.2); 
-            padding: 12px 18px; border-radius: 15px; font-weight: 900; 
-            font-size: 0.8rem; cursor: pointer;
+            padding: 10px 15px; border-radius: 12px; font-weight: 900; 
+            font-size: 0.7rem; cursor: pointer;
         }
 
-        .stats-group { display: flex; gap: 40px; }
+        .stats-group { display: flex; gap: 30px; }
         .stat { text-align: center; }
-        .stat b { display: block; color: var(--blue); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 4px; }
-        .stat span { font-size: 2.2rem; font-weight: 900; }
+        .stat b { display: block; color: var(--blue); font-size: 0.8rem; text-transform: uppercase; }
+        .stat span { font-size: 1.8rem; font-weight: 900; }
 
-        #txt-vidas { display: flex; gap: 8px; font-size: 2rem; }
-        .corazon { transition: 0.3s; filter: drop-shadow(0 0 5px rgba(255, 46, 99, 0.4)); }
-        .corazon.perdido { color: #475569; filter: grayscale(1); opacity: 0.2; }
+        #txt-vidas { display: flex; gap: 5px; font-size: 1.5rem; }
+        .corazon { transition: 0.3s; }
+        .corazon.perdido { filter: grayscale(1); opacity: 0.2; }
 
-        /* BARRA DE INSTRUCCIÓN CON FIGURA GIGANTE */
+        /* FIGURA GIGANTE */
         #instruccion-fija { 
-            background: #1e293b; padding: 15px; text-align: center; 
-            font-weight: 900; font-size: 1.5rem; color: var(--yellow); 
+            background: #1e293b; padding: 12px; text-align: center; 
+            font-weight: 900; font-size: 1.3rem; color: var(--yellow); 
             border-bottom: 3px solid #334155; z-index: 90;
             display: flex; align-items: center; justify-content: center; gap: 20px;
         }
-        #figura-objetivo { font-size: 3.5rem; color: #fff; text-shadow: 0 0 15px var(--yellow); }
+        #figura-objetivo { font-size: 3rem; color: #fff; text-shadow: 0 0 10px var(--yellow); }
 
-        #game-area { flex-grow: 1; position: relative; overflow: hidden; background: #0f172a; width: 100%; }
+        #game-area { flex-grow: 1; position: relative; overflow: hidden; background: #0f172a; }
         
         .obj { 
             position: absolute; border-radius: 15px; display: flex; align-items: center; 
@@ -63,55 +63,55 @@
         .rojo { background: var(--rojo-bg); color: var(--rojo-fig); }
         .verde { background: var(--verde-bg); color: var(--verde-fig); }
 
-        /* INTRODUCCIÓN ORIGINAL (COHETE) */
-        .overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.98); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        /* OVERLAYS Y TARJETAS CENTRADAS */
+        .overlay { 
+            position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); 
+            z-index: 2000; display: flex; align-items: center; justify-content: center; 
+        }
         
         .card { 
             background: linear-gradient(145deg, #1e293b, #0f172a); 
-            border-radius: 40px; padding: 40px; width: 95%; max-width: 480px; 
+            border-radius: 35px; padding: 40px; width: 90%; max-width: 420px; 
             text-align: center; border: 3px solid var(--blue);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .intro-icon { font-size: 5rem; margin-bottom: 10px; display: block; }
+        .intro-icon { font-size: 4.5rem; margin-bottom: 15px; }
         
         .habilidades { 
-            text-align: left; background: rgba(16, 185, 129, 0.1); 
-            padding: 25px; border-radius: 25px; margin: 20px 0; 
-            border: 1px dashed var(--success);
+            width: 100%; background: rgba(16, 185, 129, 0.1); 
+            padding: 20px; border-radius: 20px; margin: 20px 0; 
+            border: 1px dashed var(--success); box-sizing: border-box;
         }
-        .habilidades h4 { margin: 0 0 10px 0; color: var(--success); font-size: 1.2rem; text-align: center; }
-        .habilidades p { margin: 0; font-size: 1.1rem; color: #cbd5e1; line-height: 1.7; text-align: center; }
+        .habilidades h4 { margin: 0 0 10px 0; color: var(--success); font-size: 1rem; }
+        .habilidades p { margin: 0; font-size: 1rem; color: #cbd5e1; line-height: 1.6; }
 
         .btn-principal { 
-            background: var(--pink); color: white; padding: 22px; 
-            border-radius: 25px; font-weight: 900; border: none; 
-            cursor: pointer; width: 100%; font-size: 1.5rem; 
-            text-transform: uppercase; box-shadow: 0 8px 0 #9f1239; 
-            margin-bottom: 20px; transition: 0.1s;
+            background: var(--pink); color: white; padding: 20px; 
+            border-radius: 20px; font-weight: 900; border: none; 
+            cursor: pointer; width: 100%; font-size: 1.3rem; 
+            text-transform: uppercase; box-shadow: 0 6px 0 #9f1239; 
+            transition: 0.1s; margin-bottom: 15px;
         }
-        .btn-principal:active { transform: translateY(4px); box-shadow: 0 4px 0 #9f1239; }
+        .btn-principal:active { transform: translateY(3px); box-shadow: 0 3px 0 #9f1239; }
 
-        /* BOTÓN VOLVER AL PORTAL ABAJO */
+        .btn-secundario {
+            background: none; border: 2px solid #475569; color: #94a3b8;
+            padding: 12px; border-radius: 15px; width: 100%; cursor: pointer;
+            font-weight: 700; font-size: 0.9rem; transition: 0.2s;
+        }
+        .btn-secundario:hover { border-color: white; color: white; }
+
         .btn-portal {
-            display: inline-block; color: #94a3b8; font-size: 0.9rem;
-            text-decoration: none; font-weight: 700; padding: 12px 25px;
-            border: 2px solid rgba(148, 163, 184, 0.3); border-radius: 50px;
-            transition: 0.3s; margin-top: 10px;
+            display: inline-block; color: #64748b; font-size: 0.8rem;
+            text-decoration: none; font-weight: 700; margin-top: 15px;
+            padding: 10px 20px; border: 1px solid #334155; border-radius: 50px;
         }
-        .btn-portal:hover { color: white; border-color: white; background: rgba(255,255,255,0.1); }
         
-        input { 
-            width: 100%; padding: 20px; border-radius: 20px; 
-            border: 3px solid #334155; background: #0f172a; 
-            color: white; margin-bottom: 25px; text-align: center; 
-            font-family: 'Montserrat'; font-size: 1.4rem;
-        }
-
         #btn-next { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
-            width: auto; min-width: 300px; background: var(--pink); box-shadow: 0 8px 0 #9f1239; 
-            display: none; z-index: 3000; 
+            width: auto; min-width: 280px; background: var(--pink); display: none; z-index: 3000; 
         }
     </style>
 </head>
@@ -120,42 +120,41 @@
 <div id="screen-start" class="overlay">
     <div class="card">
         <span class="intro-icon">🚀</span>
-        <h1 style="color:var(--success); margin:0; font-size: 2.5rem;">¡BIENVENIDO! ✨</h1>
+        <h1 style="color:var(--success); margin:0; font-size: 2rem;">¡BIENVENIDO! ✨</h1>
         <div class="habilidades">
             <h4>🎯 OBJETIVOS DE HOY:</h4>
             <p>• Eliminación de supresión<br>• Flexibilidad fusional activa<br>• Integración Binocular Dinámica</p>
         </div>
-        <input type="text" id="paciente-nombre" placeholder="TU NOMBRE AQUÍ">
         <button class="btn-principal" onclick="irAInstrucciones()">¡VAMOS! 🚀</button>
-        
         <a href="https://manuellgtmo-png.github.io/Portal-de-juegos-de-terapia-visual/" class="btn-portal">🏠 VOLVER AL MENÚ PRINCIPAL</a>
     </div>
 </div>
 
 <div id="screen-how" class="overlay" style="display:none">
     <div class="card">
-        <h2 style="color:var(--yellow); font-size: 2rem;">¿CÓMO JUGAR?</h2>
-        <div style="text-align: left; color: #cbd5e1; font-size: 1.2rem; margin: 30px 0; background: rgba(0,0,0,0.3); padding: 25px; border-radius: 25px;">
+        <h2 style="color:var(--yellow); font-size: 1.8rem; margin-top:0;">¿CÓMO JUGAR?</h2>
+        <div style="text-align: left; color: #cbd5e1; font-size: 1.1rem; margin: 20px 0; background: rgba(0,0,0,0.3); padding: 20px; border-radius: 20px; width: 100%; box-sizing: border-box;">
             <p>🕶️ Usa tus <b>gafas ROJO/VERDE</b></p>
             <p>🎯 Atrapa solo el símbolo indicado</p>
-            <p>🌌 ¡No toques el fondo!</p>
+            <p>🌌 Evita tocar el fondo oscuro</p>
         </div>
-        <button class="btn-principal" onclick="iniciarJuegoReal()" style="background: var(--success); box-shadow: 0 8px 0 #065f46;">¡ESTOY LISTO!</button>
+        <button class="btn-principal" onclick="iniciarJuegoReal()" style="background: var(--success); box-shadow: 0 6px 0 #065f46;">¡ESTOY LISTO!</button>
+        <button class="btn-secundario" onclick="volverABienvenida()">⬅ VOLVER AL INICIO</button>
     </div>
 </div>
 
 <div id="screen-end" class="overlay" style="display:none">
     <div class="card">
         <h1 style="color:var(--success)">¡SESIÓN COMPLETADA!</h1>
-        <p id="resumen" style="color:white; font-size: 1.6rem; margin: 25px 0;"></p>
-        <div id="envio-status" style="margin-bottom:25px; font-weight:900; color:var(--blue); font-size: 1rem;">🚀 ENVIANDO DATOS AL EXCEL...</div>
-        <button class="btn-principal" onclick="location.reload()" style="background:#475569; box-shadow: 0 8px 0 #1e293b;">JUGAR DE NUEVO</button>
+        <p id="resumen" style="color:white; font-size: 1.5rem; margin: 20px 0;"></p>
+        <div id="envio-status" style="margin-bottom:20px; font-weight:900; color:var(--blue); font-size: 0.9rem;">🚀 ENVIANDO DATOS AL EXCEL...</div>
+        <button class="btn-principal" onclick="location.reload()" style="background:#475569; box-shadow: 0 6px 0 #1e293b;">JUGAR DE NUEVO</button>
         <a href="https://manuellgtmo-png.github.io/Portal-de-juegos-de-terapia-visual/" class="btn-portal">🏠 SALIR AL PORTAL</a>
     </div>
 </div>
 
 <div class="header">
-    <button onclick="location.reload()" class="btn-salir-juego">⬅ SALIR AL INICIO</button>
+    <button onclick="location.reload()" class="btn-salir-juego">⬅ SALIR</button>
     <div class="stats-group">
         <div class="stat"><b>Nivel</b><span id="txt-nivel">1</span></div>
         <div class="stat"><b>Vidas</b><div id="txt-vidas"></div></div>
@@ -165,7 +164,7 @@
 
 <div id="instruccion-fija">BUSCA ESTO: <span id="figura-objetivo"></span></div>
 <div id="game-area"></div>
-<button id="btn-next" class="btn-principal" onclick="siguienteNivelAccion()">¡NIVEL LOGRADO! SIGUIENTE ➜</button>
+<button id="btn-next" class="btn-principal" onclick="siguienteNivelAccion()">SIGUIENTE NIVEL ➜</button>
 
 <iframe name="target_frame" style="display:none;"></iframe>
 
@@ -186,7 +185,10 @@
     let nivel = 1, aciertos = 0, fallos = 0, vidas = 3, segs = 0;
     let crono, gameActive = false, objetivoActual = "";
     let animIds = [];
-    let nombreFinal = "";
+    
+    // Recuperar nombre del portal o usar por defecto
+    const params = new URLSearchParams(window.location.search);
+    let nombrePaciente = params.get('nombre') || "Paciente_Anonimo";
 
     const items = { "Cuadrado": "■", "Triángulo": "▲", "Corazón": "❤", "Estrella": "★", "Letra O": "O", "Letra U": "U" };
 
@@ -203,10 +205,13 @@
 
     function irAInstrucciones() {
         initAudio();
-        nombreFinal = document.getElementById('paciente-nombre').value;
-        if(!nombreFinal) return alert("Por favor, ingresa el nombre");
         document.getElementById('screen-start').style.display = 'none';
         document.getElementById('screen-how').style.display = 'flex';
+    }
+
+    function volverABienvenida() {
+        document.getElementById('screen-how').style.display = 'none';
+        document.getElementById('screen-start').style.display = 'flex';
     }
 
     function iniciarJuegoReal() {
@@ -314,7 +319,7 @@
         const form = document.createElement("form");
         form.method = "POST"; form.action = url; form.target = "target_frame";
         const datos = {
-            "entry.369874016": nombreFinal,
+            "entry.369874016": nombrePaciente,
             "entry.1353470174": "Integración Binocular PRO",
             "entry.721051298": nivel, 
             "entry.873272199": aciertos,
