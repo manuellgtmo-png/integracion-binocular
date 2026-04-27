@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Integración Binocular PRO</title>
+    <title>Integración Binocular PRO - Perceptum</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -59,11 +59,12 @@
         .obj { 
             position: absolute; border-radius: 15px; display: flex; align-items: center; 
             justify-content: center; font-weight: 900; cursor: pointer;
+            will-change: transform;
         }
         .rojo { background: var(--rojo-bg); color: var(--rojo-fig); }
         .verde { background: var(--verde-bg); color: var(--verde-fig); }
 
-        /* OVERLAYS Y TARJETAS CENTRADAS */
+        /* OVERLAYS */
         .overlay { 
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); 
             z-index: 2000; display: flex; align-items: center; justify-content: center; 
@@ -101,7 +102,6 @@
             padding: 12px; border-radius: 15px; width: 100%; cursor: pointer;
             font-weight: 700; font-size: 0.9rem; transition: 0.2s;
         }
-        .btn-secundario:hover { border-color: white; color: white; }
 
         .btn-portal {
             display: inline-block; color: #64748b; font-size: 0.8rem;
@@ -147,7 +147,7 @@
     <div class="card">
         <h1 style="color:var(--success)">¡SESIÓN COMPLETADA!</h1>
         <p id="resumen" style="color:white; font-size: 1.5rem; margin: 20px 0;"></p>
-        <div id="envio-status" style="margin-bottom:20px; font-weight:900; color:var(--blue); font-size: 0.9rem;">🚀 ENVIANDO DATOS AL EXCEL...</div>
+        <div id="envio-status" style="margin-bottom:20px; font-weight:900; color:var(--blue); font-size: 0.9rem;">🚀 ENVIANDO DATOS A PERCEPTUM CLOUD...</div>
         <button class="btn-principal" onclick="location.reload()" style="background:#475569; box-shadow: 0 6px 0 #1e293b;">JUGAR DE NUEVO</button>
         <a href="https://manuellgtmo-png.github.io/Portal-de-juegos-de-terapia-visual/" class="btn-portal">🏠 SALIR AL PORTAL</a>
     </div>
@@ -184,9 +184,9 @@
 
     let nivel = 1, aciertos = 0, fallos = 0, vidas = 3, segs = 0;
     let crono, gameActive = false, objetivoActual = "";
+    let canLoseLife = true; // ESCUDO DE VIDA
     let animIds = [];
     
-    // Recuperar nombre del portal o usar por defecto
     const params = new URLSearchParams(window.location.search);
     let nombrePaciente = params.get('nombre') || "Paciente_Anonimo";
 
@@ -198,7 +198,7 @@
         for(let i=0; i<3; i++) {
             const s = document.createElement('span');
             s.className = i < vidas ? "corazon" : "corazon perdido";
-            s.innerText = "❤️";
+            s.innerText = i < vidas ? "❤️" : "🖤";
             div.appendChild(s);
         }
     }
@@ -251,8 +251,8 @@
             
             let px = Math.random() * (area.clientWidth - size);
             let py = Math.random() * (area.clientHeight - size);
-            let vx = (Math.random() - 0.5) * (3 + nivel * 0.5);
-            let vy = (Math.random() - 0.5) * (3 + nivel * 0.5);
+            let vx = (Math.random() - 0.5) * (2 + nivel * 0.4);
+            let vy = (Math.random() - 0.5) * (2 + nivel * 0.4);
 
             function mover() {
                 if(!gameActive || obj.style.opacity === "0") return;
@@ -265,24 +265,42 @@
             mover();
 
             if(simb === objetivoActual) obj.dataset.target = "true";
-            obj.onclick = (e) => {
+            
+            const handleInteract = (e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 if(obj.dataset.target === "true") {
-                    sonar(800, 0.1); obj.style.opacity = "0"; obj.style.pointerEvents = "none";
-                    aciertos++; revisarFin();
-                } else { registrarFalloManual(); }
+                    sonar(800, 0.1); 
+                    obj.style.opacity = "0"; 
+                    obj.style.pointerEvents = "none";
+                    aciertos++; 
+                    revisarFin();
+                } else { 
+                    registrarFalloManual(); 
+                }
             };
+
+            obj.onmousedown = handleInteract;
+            obj.ontouchstart = handleInteract;
             area.appendChild(obj);
         }
     }
 
     function registrarFalloManual() {
-        if(!gameActive) return;
+        if(!gameActive || !canLoseLife) return;
+        
+        canLoseLife = false;
         sonar(150, 0.3, 'sawtooth');
-        vidas--; fallos++;
+        vidas--; 
+        fallos++;
         actualizarCorazones();
+        
         document.body.classList.add('error-flash');
-        setTimeout(() => document.body.classList.remove('error-flash'), 100);
+        setTimeout(() => {
+            document.body.classList.remove('error-flash');
+            canLoseLife = true;
+        }, 1000); // 1 segundo de escudo
+
         if(vidas <= 0) finalizarPartida();
     }
 
@@ -316,24 +334,26 @@
 
     function enviarExcel() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
-        const form = document.createElement("form");
-        form.method = "POST"; form.action = url; form.target = "target_frame";
-        const datos = {
-            "entry.369874016": nombrePaciente,
-            "entry.1353470174": "Integración Binocular PRO",
-            "entry.721051298": nivel, 
-            "entry.873272199": aciertos,
-            "entry.1030094511": fallos, 
-            "entry.1303309812": segs + "s",
-            "entry.845098414": new Date().toISOString().split('T')[0]
-        };
-        for(let key in datos) {
-            let i = document.createElement("input"); i.type="hidden"; i.name=key; i.value=datos[key];
-            form.appendChild(i);
-        }
-        document.body.appendChild(form);
-        form.submit();
-        setTimeout(() => { document.getElementById('envio-status').innerText = "✅ DATOS GUARDADOS EN EXCEL"; }, 3000);
+        const formData = new FormData();
+        
+        formData.append("entry.369874016", nombrePaciente);
+        formData.append("entry.1353470174", "Integración Binocular PRO v4.8");
+        formData.append("entry.721051298", nivel); 
+        formData.append("entry.873272199", aciertos);
+        formData.append("entry.1030094511", fallos); 
+        formData.append("entry.1303309812", segs + "s");
+        formData.append("entry.845098414", new Date().toISOString().split('T')[0]);
+
+        fetch(url, {
+            method: "POST",
+            mode: "no-cors",
+            body: formData
+        }).then(() => {
+            document.getElementById('envio-status').innerText = "✅ CONEXIÓN EXITOSA CON PERCEPTUM CLOUD";
+            document.getElementById('envio-status').style.color = "var(--success)";
+        }).catch(() => {
+            document.getElementById('envio-status').innerText = "⚠️ ERROR DE SINCRONIZACIÓN";
+        });
     }
 </script>
 </body>
