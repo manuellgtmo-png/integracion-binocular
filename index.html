@@ -184,7 +184,7 @@
 
     let nivel = 1, aciertos = 0, fallos = 0, vidas = 3, segs = 0;
     let crono, gameActive = false, objetivoActual = "";
-    let canLoseLife = true; // ESCUDO DE VIDA
+    let canLoseLife = true; 
     let animIds = [];
     
     const params = new URLSearchParams(window.location.search);
@@ -267,8 +267,10 @@
             if(simb === objetivoActual) obj.dataset.target = "true";
             
             const handleInteract = (e) => {
-                e.stopPropagation();
+                e.stopPropagation(); // FIX: Evita que el clic pase al fondo
                 e.preventDefault();
+                if(!gameActive) return;
+
                 if(obj.dataset.target === "true") {
                     sonar(800, 0.1); 
                     obj.style.opacity = "0"; 
@@ -299,16 +301,18 @@
         setTimeout(() => {
             document.body.classList.remove('error-flash');
             canLoseLife = true;
-        }, 1000); // 1 segundo de escudo
+        }, 1000); 
 
         if(vidas <= 0) finalizarPartida();
     }
 
     function registrarFallo(e) {
+        // FIX: Solo resta vida si el clic es exactamente en el fondo del área de juego
         if(gameActive && e.target.id === "game-area") registrarFalloManual();
     }
 
     function revisarFin() {
+        // FIX: Ahora revisa correctamente si quedan objetivos visibles
         const rest = Array.from(document.querySelectorAll('.obj[data-target="true"]')).filter(r => r.style.opacity !== "0");
         if(rest.length === 0) {
             document.getElementById('btn-next').style.display = "block";
