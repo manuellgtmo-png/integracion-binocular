@@ -22,7 +22,6 @@
 
         body.error-flash { background: #450a0a !important; transition: 0.1s; }
 
-        /* HEADER */
         .header { 
             height: 90px; min-height: 90px; background: #1e293b; 
             display: flex; justify-content: space-between; align-items: center; 
@@ -45,7 +44,6 @@
         .corazon { transition: 0.3s; }
         .corazon.perdido { filter: grayscale(1); opacity: 0.2; }
 
-        /* FIGURA GIGANTE */
         #instruccion-fija { 
             background: #1e293b; padding: 12px; text-align: center; 
             font-weight: 900; font-size: 1.3rem; color: var(--yellow); 
@@ -59,12 +57,12 @@
         .obj { 
             position: absolute; border-radius: 15px; display: flex; align-items: center; 
             justify-content: center; font-weight: 900; cursor: pointer;
+            transform: translate3d(0,0,0); /* Fuerza aceleración por hardware */
             will-change: transform;
         }
         .rojo { background: var(--rojo-bg); color: var(--rojo-fig); }
         .verde { background: var(--verde-bg); color: var(--verde-fig); }
 
-        /* OVERLAYS */
         .overlay { 
             position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); 
             z-index: 2000; display: flex; align-items: center; justify-content: center; 
@@ -95,7 +93,6 @@
             text-transform: uppercase; box-shadow: 0 6px 0 #9f1239; 
             transition: 0.1s; margin-bottom: 15px;
         }
-        .btn-principal:active { transform: translateY(3px); box-shadow: 0 3px 0 #9f1239; }
 
         .btn-secundario {
             background: none; border: 2px solid #475569; color: #94a3b8;
@@ -115,7 +112,7 @@
         }
     </style>
 </head>
-<body onclick="registrarFallo(event)">
+<body onmousedown="registrarFallo(event)" ontouchstart="registrarFallo(event)">
 
 <div id="screen-start" class="overlay">
     <div class="card">
@@ -166,8 +163,6 @@
 <div id="game-area"></div>
 <button id="btn-next" class="btn-principal" onclick="siguienteNivelAccion()">SIGUIENTE NIVEL ➜</button>
 
-<iframe name="target_frame" style="display:none;"></iframe>
-
 <script>
     let audioCtx;
     function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -185,12 +180,11 @@
     let nivel = 1, aciertos = 0, fallos = 0, vidas = 3, segs = 0;
     let crono, gameActive = false, objetivoActual = "";
     let canLoseLife = true; 
-    let animIds = [];
-    let nivelCompletado = false; 
+    let animId;
+    let figuras = [];
     
     const params = new URLSearchParams(window.location.search);
     let nombrePaciente = params.get('nombre') || "Paciente_Anonimo";
-
     const items = { "Cuadrado": "■", "Triángulo": "▲", "Corazón": "❤", "Estrella": "★", "Letra O": "O", "Letra U": "U" };
 
     function actualizarCorazones() {
@@ -224,14 +218,27 @@
             document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); 
         }, 1000);
         generarEscena();
+        engine(); // Iniciar motor único
+    }
+
+    // MOTOR ÚNICO DE MOVIMIENTO (Mucha más fluidez)
+    function engine() {
+        if(!gameActive) return;
+        const area = document.getElementById('game-area');
+        figuras.forEach(f => {
+            if(!f.active) return;
+            f.x += f.vx; f.y += f.vy;
+            if(f.x <= 0 || f.x >= area.clientWidth - f.size) f.vx *= -1;
+            if(f.y <= 0 || f.y >= area.clientHeight - f.size) f.vy *= -1;
+            f.el.style.transform = `translate3d(${f.x}px, ${f.y}px, 0)`;
+        });
+        animId = requestAnimationFrame(engine);
     }
 
     function generarEscena() {
-        nivelCompletado = false;
         const area = document.getElementById('game-area');
         area.innerHTML = "";
-        animIds.forEach(id => cancelAnimationFrame(id));
-        animIds = [];
+        figuras = [];
         document.getElementById('btn-next').style.display = "none";
         
         const keys = Object.keys(items);
@@ -251,34 +258,26 @@
             obj.style.height = size + "px";
             obj.style.fontSize = (size * 0.75) + "px";
             
-            let px = Math.random() * (area.clientWidth - size);
-            let py = Math.random() * (area.clientHeight - size);
-            let vx = (Math.random() - 0.5) * (2 + nivel * 0.4);
-            let vy = (Math.random() - 0.5) * (2 + nivel * 0.4);
+            let data = {
+                el: obj,
+                x: Math.random() * (area.clientWidth - size),
+                y: Math.random() * (area.clientHeight - size),
+                vx: (Math.random() - 0.5) * (2 + nivel * 0.4),
+                vy: (Math.random() - 0.5) * (2 + nivel * 0.4),
+                size: size,
+                isTarget: simb === objetivoActual,
+                active: true
+            };
 
-            function mover() {
-                if(!gameActive || obj.style.opacity === "0" || nivelCompletado) return;
-                px += vx; py += vy;
-                if(px <= 0 || px >= area.clientWidth - size) vx *= -1;
-                if(py <= 0 || py >= area.clientHeight - size) vy *= -1;
-                obj.style.left = px + "px"; obj.style.top = py + "px";
-                animIds.push(requestAnimationFrame(mover));
-            }
-            mover();
-
-            if(simb === objetivoActual) obj.dataset.target = "true";
-            
             const handleInteract = (e) => {
                 e.stopPropagation(); 
-                e.stopImmediatePropagation();
                 e.preventDefault();
-                
-                if(!gameActive || nivelCompletado) return;
+                if(!gameActive || !data.active) return;
 
-                if(obj.dataset.target === "true") {
+                if(data.isTarget) {
                     sonar(800, 0.1); 
-                    obj.style.opacity = "0"; 
-                    obj.style.pointerEvents = "none";
+                    data.active = false;
+                    obj.style.display = "none";
                     aciertos++; 
                     revisarFin();
                 } else { 
@@ -289,36 +288,35 @@
             obj.onmousedown = handleInteract;
             obj.ontouchstart = handleInteract;
             area.appendChild(obj);
+            figuras.push(data);
         }
     }
 
     function registrarFalloManual() {
-        if(!gameActive || !canLoseLife || nivelCompletado) return;
-        
+        if(!gameActive || !canLoseLife) return;
         canLoseLife = false;
         sonar(150, 0.3, 'sawtooth');
         vidas--; 
         fallos++;
         actualizarCorazones();
-        
         document.body.classList.add('error-flash');
         setTimeout(() => {
             document.body.classList.remove('error-flash');
             canLoseLife = true;
-        }, 800); 
-
+        }, 1000); 
         if(vidas <= 0) finalizarPartida();
     }
 
     function registrarFallo(e) {
-        if(!gameActive || nivelCompletado) return;
-        if(e.target.id === "game-area") registrarFalloManual();
+        // Solo resta vida si el clic es estrictamente en el fondo oscuro y no hay un botón de siguiente nivel visible
+        if(gameActive && e.target.id === "game-area" && document.getElementById('btn-next').style.display === "none") {
+            registrarFalloManual();
+        }
     }
 
     function revisarFin() {
-        const rest = Array.from(document.querySelectorAll('.obj[data-target="true"]')).filter(r => r.style.opacity !== "0");
-        if(rest.length === 0) {
-            nivelCompletado = true;
+        const objetivosRestantes = figuras.filter(f => f.isTarget && f.active).length;
+        if(objetivosRestantes === 0) {
             document.getElementById('btn-next').style.display = "block";
             sonar(1200, 0.2);
         }
@@ -333,9 +331,8 @@
 
     function finalizarPartida() {
         gameActive = false;
-        nivelCompletado = true;
+        cancelAnimationFrame(animId);
         clearInterval(crono);
-        animIds.forEach(id => cancelAnimationFrame(id));
         document.getElementById('screen-end').style.display = 'flex';
         document.getElementById('resumen').innerText = `Nivel: ${nivel} | Aciertos: ${aciertos}`;
         enviarExcel();
@@ -356,8 +353,6 @@
         .then(() => {
             document.getElementById('envio-status').innerText = "✅ CONEXIÓN EXITOSA";
             document.getElementById('envio-status').style.color = "var(--success)";
-        }).catch(() => {
-            document.getElementById('envio-status').innerText = "⚠️ ERROR DE SINCRONIZACIÓN";
         });
     }
 </script>
