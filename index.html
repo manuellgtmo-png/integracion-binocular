@@ -186,6 +186,7 @@
     let crono, gameActive = false, objetivoActual = "";
     let canLoseLife = true; 
     let animIds = [];
+    let nivelCompletado = false; 
     
     const params = new URLSearchParams(window.location.search);
     let nombrePaciente = params.get('nombre') || "Paciente_Anonimo";
@@ -226,6 +227,7 @@
     }
 
     function generarEscena() {
+        nivelCompletado = false;
         const area = document.getElementById('game-area');
         area.innerHTML = "";
         animIds.forEach(id => cancelAnimationFrame(id));
@@ -255,7 +257,7 @@
             let vy = (Math.random() - 0.5) * (2 + nivel * 0.4);
 
             function mover() {
-                if(!gameActive || obj.style.opacity === "0") return;
+                if(!gameActive || obj.style.opacity === "0" || nivelCompletado) return;
                 px += vx; py += vy;
                 if(px <= 0 || px >= area.clientWidth - size) vx *= -1;
                 if(py <= 0 || py >= area.clientHeight - size) vy *= -1;
@@ -267,9 +269,11 @@
             if(simb === objetivoActual) obj.dataset.target = "true";
             
             const handleInteract = (e) => {
-                e.stopPropagation(); // FIX: Evita que el clic pase al fondo
+                e.stopPropagation(); 
+                e.stopImmediatePropagation();
                 e.preventDefault();
-                if(!gameActive) return;
+                
+                if(!gameActive || nivelCompletado) return;
 
                 if(obj.dataset.target === "true") {
                     sonar(800, 0.1); 
@@ -289,7 +293,7 @@
     }
 
     function registrarFalloManual() {
-        if(!gameActive || !canLoseLife) return;
+        if(!gameActive || !canLoseLife || nivelCompletado) return;
         
         canLoseLife = false;
         sonar(150, 0.3, 'sawtooth');
@@ -301,20 +305,20 @@
         setTimeout(() => {
             document.body.classList.remove('error-flash');
             canLoseLife = true;
-        }, 1000); 
+        }, 800); 
 
         if(vidas <= 0) finalizarPartida();
     }
 
     function registrarFallo(e) {
-        // FIX: Solo resta vida si el clic es exactamente en el fondo del área de juego
-        if(gameActive && e.target.id === "game-area") registrarFalloManual();
+        if(!gameActive || nivelCompletado) return;
+        if(e.target.id === "game-area") registrarFalloManual();
     }
 
     function revisarFin() {
-        // FIX: Ahora revisa correctamente si quedan objetivos visibles
         const rest = Array.from(document.querySelectorAll('.obj[data-target="true"]')).filter(r => r.style.opacity !== "0");
         if(rest.length === 0) {
+            nivelCompletado = true;
             document.getElementById('btn-next').style.display = "block";
             sonar(1200, 0.2);
         }
@@ -329,6 +333,7 @@
 
     function finalizarPartida() {
         gameActive = false;
+        nivelCompletado = true;
         clearInterval(crono);
         animIds.forEach(id => cancelAnimationFrame(id));
         document.getElementById('screen-end').style.display = 'flex';
@@ -339,7 +344,6 @@
     function enviarExcel() {
         const url = "https://docs.google.com/forms/d/e/1FAIpQLSeLlcvlhrTSHDhvxctLghiM3caGsgBL2wdaT7nBxrz6UARwYg/formResponse";
         const formData = new FormData();
-        
         formData.append("entry.369874016", nombrePaciente);
         formData.append("entry.1353470174", "Integración Binocular PRO v4.8");
         formData.append("entry.721051298", nivel); 
@@ -348,12 +352,9 @@
         formData.append("entry.1303309812", segs + "s");
         formData.append("entry.845098414", new Date().toISOString().split('T')[0]);
 
-        fetch(url, {
-            method: "POST",
-            mode: "no-cors",
-            body: formData
-        }).then(() => {
-            document.getElementById('envio-status').innerText = "✅ CONEXIÓN EXITOSA CON PERCEPTUM CLOUD";
+        fetch(url, { method: "POST", mode: "no-cors", body: formData })
+        .then(() => {
+            document.getElementById('envio-status').innerText = "✅ CONEXIÓN EXITOSA";
             document.getElementById('envio-status').style.color = "var(--success)";
         }).catch(() => {
             document.getElementById('envio-status').innerText = "⚠️ ERROR DE SINCRONIZACIÓN";
