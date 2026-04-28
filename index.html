@@ -57,7 +57,7 @@
         .obj { 
             position: absolute; border-radius: 15px; display: flex; align-items: center; 
             justify-content: center; font-weight: 900; cursor: pointer;
-            transform: translate3d(0,0,0); /* Fuerza aceleración por hardware */
+            transform: translate3d(0,0,0);
             will-change: transform;
         }
         .rojo { background: var(--rojo-bg); color: var(--rojo-fig); }
@@ -182,6 +182,7 @@
     let canLoseLife = true; 
     let animId;
     let figuras = [];
+    let nivelGanado = false; // Bandera de seguridad
     
     const params = new URLSearchParams(window.location.search);
     let nombrePaciente = params.get('nombre') || "Paciente_Anonimo";
@@ -218,10 +219,9 @@
             document.getElementById('txt-cron').innerText = new Date(segs * 1000).toISOString().substr(14, 5); 
         }, 1000);
         generarEscena();
-        engine(); // Iniciar motor único
+        engine();
     }
 
-    // MOTOR ÚNICO DE MOVIMIENTO (Mucha más fluidez)
     function engine() {
         if(!gameActive) return;
         const area = document.getElementById('game-area');
@@ -236,6 +236,7 @@
     }
 
     function generarEscena() {
+        nivelGanado = false; // Resetear bandera al iniciar
         const area = document.getElementById('game-area');
         area.innerHTML = "";
         figuras = [];
@@ -272,7 +273,8 @@
             const handleInteract = (e) => {
                 e.stopPropagation(); 
                 e.preventDefault();
-                if(!gameActive || !data.active) return;
+                // BLINDAJE: Si el nivel ya se ganó, no hacer nada (no resta vidas)
+                if(!gameActive || !data.active || nivelGanado) return;
 
                 if(data.isTarget) {
                     sonar(800, 0.1); 
@@ -293,7 +295,7 @@
     }
 
     function registrarFalloManual() {
-        if(!gameActive || !canLoseLife) return;
+        if(!gameActive || !canLoseLife || nivelGanado) return;
         canLoseLife = false;
         sonar(150, 0.3, 'sawtooth');
         vidas--; 
@@ -308,8 +310,8 @@
     }
 
     function registrarFallo(e) {
-        // Solo resta vida si el clic es estrictamente en el fondo oscuro y no hay un botón de siguiente nivel visible
-        if(gameActive && e.target.id === "game-area" && document.getElementById('btn-next').style.display === "none") {
+        // Solo falla si el nivel NO ha terminado y tocas el fondo
+        if(gameActive && !nivelGanado && e.target.id === "game-area") {
             registrarFalloManual();
         }
     }
@@ -317,6 +319,7 @@
     function revisarFin() {
         const objetivosRestantes = figuras.filter(f => f.isTarget && f.active).length;
         if(objetivosRestantes === 0) {
+            nivelGanado = true; // Activar escudo de vidas
             document.getElementById('btn-next').style.display = "block";
             sonar(1200, 0.2);
         }
@@ -331,6 +334,7 @@
 
     function finalizarPartida() {
         gameActive = false;
+        nivelGanado = true;
         cancelAnimationFrame(animId);
         clearInterval(crono);
         document.getElementById('screen-end').style.display = 'flex';
